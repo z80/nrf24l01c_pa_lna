@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "rfx2401c")(type "KiCad")(uri "${KIPRJMOD}/rfx2401c.kicad_sym")(options "")(descr ""))
+)
