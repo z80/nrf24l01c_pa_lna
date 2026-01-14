@@ -2904,16 +2904,6 @@
 	)
 	(wire
 		(pts
-			(xy 29.21 30.48) (xy 29.21 33.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1fe1abd0-1167-4a7c-91f3-9fc28bf89a44")
-	)
-	(wire
-		(pts
 			(xy 88.9 68.58) (xy 88.9 66.04)
 		)
 		(stroke
@@ -2961,16 +2951,6 @@
 			(type default)
 		)
 		(uuid "29dcb2e1-825c-4959-a88b-268ade2fa574")
-	)
-	(wire
-		(pts
-			(xy 40.64 30.48) (xy 40.64 33.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2acadb61-81f4-450d-bcc0-5e312a5e6700")
 	)
 	(wire
 		(pts
@@ -3101,16 +3081,6 @@
 			(type default)
 		)
 		(uuid "398b1001-36aa-42b4-9f45-0439944a85e7")
-	)
-	(wire
-		(pts
-			(xy 50.8 30.48) (xy 50.8 33.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "39d8870d-cbd7-4a0d-9585-cc76de703571")
 	)
 	(wire
 		(pts
@@ -3584,16 +3554,6 @@
 	)
 	(wire
 		(pts
-			(xy 29.21 40.64) (xy 29.21 43.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "891aa5c6-8951-4310-b055-0616ac05e9e6")
-	)
-	(wire
-		(pts
 			(xy 38.1 246.38) (xy 38.1 248.92)
 		)
 		(stroke
@@ -3631,16 +3591,6 @@
 			(type default)
 		)
 		(uuid "8ecbe3ea-fd04-4840-9fc4-fa9772bf5d40")
-	)
-	(wire
-		(pts
-			(xy 50.8 40.64) (xy 50.8 43.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8ff56bca-978d-4c3e-a548-2c7c0b93f2d4")
 	)
 	(wire
 		(pts
@@ -3781,16 +3731,6 @@
 			(type default)
 		)
 		(uuid "af24ebac-aea3-45ad-a0cc-c53dbc8207cd")
-	)
-	(wire
-		(pts
-			(xy 40.64 40.64) (xy 40.64 43.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b09b5740-623c-4b68-86fd-0952e1c6a522")
 	)
 	(wire
 		(pts
@@ -4603,72 +4543,6 @@
 			(project "nrf24l01_pa_lna"
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "#PWR020")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:VDD")
-		(at 40.64 30.48 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "02fe7c8c-3f68-4416-b741-4ac78e06e04a")
-		(property "Reference" "#PWR045"
-			(at 40.64 34.29 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "VDD"
-			(at 40.64 25.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 40.64 30.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 40.64 30.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"VDD\""
-			(at 40.64 30.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "2332a974-4a4c-4ac8-932f-325a27ee4742")
-		)
-		(instances
-			(project "nrf24l01_pa_lna"
-				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
-					(reference "#PWR045")
 					(unit 1)
 				)
 			)
@@ -5888,72 +5762,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 50.8 43.18 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "29ef08c0-7bc8-4ec8-8baa-50af225d281e")
-		(property "Reference" "#PWR048"
-			(at 50.8 49.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 50.8 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 50.8 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 50.8 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 50.8 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "d28c5d79-2d9a-4ed4-87ed-8fb171475cc3")
-		)
-		(instances
-			(project "nrf24l01_pa_lna"
-				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
-					(reference "#PWR048")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
 		(at 214.63 55.88 0)
 		(unit 1)
@@ -6027,72 +5835,6 @@
 			(project "nrf24l01_pa_lna"
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "C23")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 40.64 43.18 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "2e1ea5ae-fdae-4a0e-9c91-49b2d829cb57")
-		(property "Reference" "#PWR046"
-			(at 40.64 49.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 40.64 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 40.64 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 40.64 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 40.64 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "9f52353e-9a0f-410c-aad6-4c6c20bdf156")
-		)
-		(instances
-			(project "nrf24l01_pa_lna"
-				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
-					(reference "#PWR046")
 					(unit 1)
 				)
 			)
@@ -7336,85 +7078,6 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 40.64 36.83 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "50b2825b-5f5f-4d02-b282-dad284b2d4e4")
-		(property "Reference" "C26"
-			(at 44.45 35.5599 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "10n"
-			(at 44.45 38.0999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-			(at 41.6052 40.64 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 40.64 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 40.64 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
-			(at 40.64 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e9a31f7e-77eb-4c1c-ac45-f369b441344e")
-		)
-		(pin "2"
-			(uuid "2884cbc7-71c2-4a30-bde9-d22aa43884f4")
-		)
-		(instances
-			(project "nrf24l01_pa_lna"
-				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
-					(reference "C26")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C")
 		(at 248.92 55.88 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7643,85 +7306,6 @@
 			(project ""
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "Y1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C")
-		(at 29.21 36.83 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "5914b9fe-d7b7-48eb-a59e-bf0046c43433")
-		(property "Reference" "C25"
-			(at 33.02 35.5599 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "10n"
-			(at 33.02 38.0999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-			(at 30.1752 40.64 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 29.21 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 29.21 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
-			(at 29.21 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "82c77c15-979c-49c9-b04b-766d9938220d")
-		)
-		(pin "2"
-			(uuid "7c84b988-411c-40e2-99ff-d740e3c4ac0e")
-		)
-		(instances
-			(project "nrf24l01_pa_lna"
-				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
-					(reference "C25")
 					(unit 1)
 				)
 			)
@@ -9541,138 +9125,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 29.21 43.18 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "95630a96-1906-4d2d-a66c-3c6cd4e24d80")
-		(property "Reference" "#PWR044"
-			(at 29.21 49.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 29.21 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 29.21 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 29.21 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 29.21 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "706492cd-aefa-41e7-bd41-f5072706d55b")
-		)
-		(instances
-			(project "nrf24l01_pa_lna"
-				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
-					(reference "#PWR044")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:VDD")
-		(at 29.21 30.48 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "95f65089-e193-48bd-9507-8e9b0673383e")
-		(property "Reference" "#PWR042"
-			(at 29.21 34.29 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "VDD"
-			(at 29.21 25.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 29.21 30.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 29.21 30.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"VDD\""
-			(at 29.21 30.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "80784a5a-3c98-47a7-b8d5-12d6f7d96d62")
-		)
-		(instances
-			(project "nrf24l01_pa_lna"
-				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
-					(reference "#PWR042")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "rfx2401c:RFX2401C")
 		(at 229.87 114.3 0)
 		(unit 1)
@@ -9789,72 +9241,6 @@
 			(project ""
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "U2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:VDD")
-		(at 50.8 30.48 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "97867a36-9736-4c25-9e4b-43d60ace8add")
-		(property "Reference" "#PWR047"
-			(at 50.8 34.29 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "VDD"
-			(at 50.8 25.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 50.8 30.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 50.8 30.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"VDD\""
-			(at 50.8 30.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "621ff8c9-b2b2-45ed-8772-42d30a142f3a")
-		)
-		(instances
-			(project "nrf24l01_pa_lna"
-				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
-					(reference "#PWR047")
 					(unit 1)
 				)
 			)
@@ -10043,7 +9429,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_DFN_QFN:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm"
+		(property "Footprint" "nrf24l01:QFN-20-4x4mm_P0.5mm_EP2.5x2.5mm"
 			(at 96.52 68.58 0)
 			(effects
 				(font
@@ -11529,85 +10915,6 @@
 			(project "nrf24l01_pa_lna"
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "#PWR022")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C")
-		(at 50.8 36.83 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "f4e91554-81e4-46f3-8d2b-01ed34fa012d")
-		(property "Reference" "C27"
-			(at 54.61 35.5599 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "10n"
-			(at 54.61 38.0999 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-			(at 51.7652 40.64 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 50.8 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 50.8 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
-			(at 50.8 36.83 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "6c32c11c-3512-492a-a1c7-a41ceedbf53c")
-		)
-		(pin "2"
-			(uuid "65fa1c1d-90c3-4ced-b215-c48a33d64893")
-		)
-		(instances
-			(project "nrf24l01_pa_lna"
-				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
-					(reference "C27")
 					(unit 1)
 				)
 			)
