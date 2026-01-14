@@ -166,7 +166,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Connector_Generic:Conn_02x04_Counter_Clockwise"
+		(symbol "Connector_Generic:Conn_02x04_Odd_Even"
 			(pin_names
 				(offset 1.016)
 				(hide yes)
@@ -182,7 +182,7 @@
 					)
 				)
 			)
-			(property "Value" "Conn_02x04_Counter_Clockwise"
+			(property "Value" "Conn_02x04_Odd_Even"
 				(at 1.27 -7.62 0)
 				(effects
 					(font
@@ -208,7 +208,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "Generic connector, double row, 02x04, counter clockwise pin numbering scheme (similar to DIP package numbering), script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(property "Description" "Generic connector, double row, 02x04, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"
 				(at 0 0 0)
 				(effects
 					(font
@@ -235,7 +235,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "Conn_02x04_Counter_Clockwise_1_1"
+			(symbol "Conn_02x04_Odd_Even_1_1"
 				(rectangle
 					(start -1.27 3.81)
 					(end 3.81 -6.35)
@@ -356,24 +356,6 @@
 				(pin passive line
 					(at -5.08 0 0)
 					(length 3.81)
-					(name "Pin_2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at -5.08 -2.54 0)
-					(length 3.81)
 					(name "Pin_3"
 						(effects
 							(font
@@ -390,16 +372,34 @@
 					)
 				)
 				(pin passive line
-					(at -5.08 -5.08 0)
+					(at -5.08 -2.54 0)
 					(length 3.81)
-					(name "Pin_4"
+					(name "Pin_5"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "4"
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -5.08 0)
+					(length 3.81)
+					(name "Pin_7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -410,14 +410,14 @@
 				(pin passive line
 					(at 7.62 2.54 180)
 					(length 3.81)
-					(name "Pin_8"
+					(name "Pin_2"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "8"
+					(number "2"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -428,14 +428,14 @@
 				(pin passive line
 					(at 7.62 0 180)
 					(length 3.81)
-					(name "Pin_7"
+					(name "Pin_4"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "7"
+					(number "4"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -464,14 +464,14 @@
 				(pin passive line
 					(at 7.62 -5.08 180)
 					(length 3.81)
-					(name "Pin_5"
+					(name "Pin_8"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "5"
+					(number "8"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2713,6 +2713,16 @@
 	)
 	(wire
 		(pts
+			(xy 214.63 49.53) (xy 214.63 52.07)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1cae5df0-0fd2-4bbb-ac69-3fe375624fe4")
+	)
+	(wire
+		(pts
 			(xy 195.58 104.14) (xy 208.28 104.14)
 		)
 		(stroke
@@ -2723,7 +2733,7 @@
 	)
 	(wire
 		(pts
-			(xy 237.49 59.69) (xy 237.49 62.23)
+			(xy 248.92 59.69) (xy 248.92 62.23)
 		)
 		(stroke
 			(width 0)
@@ -2793,6 +2803,16 @@
 	)
 	(wire
 		(pts
+			(xy 29.21 30.48) (xy 29.21 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1fe1abd0-1167-4a7c-91f3-9fc28bf89a44")
+	)
+	(wire
+		(pts
 			(xy 88.9 68.58) (xy 88.9 66.04)
 		)
 		(stroke
@@ -2840,6 +2860,16 @@
 			(type default)
 		)
 		(uuid "29dcb2e1-825c-4959-a88b-268ade2fa574")
+	)
+	(wire
+		(pts
+			(xy 40.64 30.48) (xy 40.64 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2acadb61-81f4-450d-bcc0-5e312a5e6700")
 	)
 	(wire
 		(pts
@@ -2960,6 +2990,16 @@
 			(type default)
 		)
 		(uuid "398b1001-36aa-42b4-9f45-0439944a85e7")
+	)
+	(wire
+		(pts
+			(xy 50.8 30.48) (xy 50.8 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "39d8870d-cbd7-4a0d-9585-cc76de703571")
 	)
 	(wire
 		(pts
@@ -3123,7 +3163,7 @@
 	)
 	(wire
 		(pts
-			(xy 226.06 59.69) (xy 226.06 62.23)
+			(xy 237.49 59.69) (xy 237.49 62.23)
 		)
 		(stroke
 			(width 0)
@@ -3273,7 +3313,7 @@
 	)
 	(wire
 		(pts
-			(xy 237.49 49.53) (xy 237.49 52.07)
+			(xy 248.92 49.53) (xy 248.92 52.07)
 		)
 		(stroke
 			(width 0)
@@ -3433,6 +3473,16 @@
 	)
 	(wire
 		(pts
+			(xy 29.21 40.64) (xy 29.21 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "891aa5c6-8951-4310-b055-0616ac05e9e6")
+	)
+	(wire
+		(pts
 			(xy 82.55 140.97) (xy 82.55 133.35)
 		)
 		(stroke
@@ -3463,6 +3513,16 @@
 	)
 	(wire
 		(pts
+			(xy 50.8 40.64) (xy 50.8 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8ff56bca-978d-4c3e-a548-2c7c0b93f2d4")
+	)
+	(wire
+		(pts
 			(xy 93.98 66.04) (xy 93.98 68.58)
 		)
 		(stroke
@@ -3473,7 +3533,7 @@
 	)
 	(wire
 		(pts
-			(xy 226.06 49.53) (xy 226.06 52.07)
+			(xy 237.49 49.53) (xy 237.49 52.07)
 		)
 		(stroke
 			(width 0)
@@ -3500,6 +3560,16 @@
 			(type default)
 		)
 		(uuid "9d147ef9-6ed2-48e5-9e6e-938caae005c6")
+	)
+	(wire
+		(pts
+			(xy 214.63 59.69) (xy 214.63 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9d52c423-889e-493f-8e36-fb67b9ea670c")
 	)
 	(wire
 		(pts
@@ -3590,6 +3660,16 @@
 			(type default)
 		)
 		(uuid "af24ebac-aea3-45ad-a0cc-c53dbc8207cd")
+	)
+	(wire
+		(pts
+			(xy 40.64 40.64) (xy 40.64 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b09b5740-623c-4b68-86fd-0952e1c6a522")
 	)
 	(wire
 		(pts
@@ -3770,6 +3850,16 @@
 			(type default)
 		)
 		(uuid "c1d22ca9-454e-4c84-834a-c2da8d67f765")
+	)
+	(wire
+		(pts
+			(xy 226.06 49.53) (xy 226.06 52.07)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c3b1cbe2-ff0d-48eb-a779-e2cf29ca4b0a")
 	)
 	(wire
 		(pts
@@ -3970,6 +4060,16 @@
 			(type default)
 		)
 		(uuid "e7a6dbec-62a5-48af-86a8-eb31551b3e02")
+	)
+	(wire
+		(pts
+			(xy 226.06 59.69) (xy 226.06 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e9eb7d80-aecd-476f-bcb9-80064bc3321e")
 	)
 	(wire
 		(pts
@@ -4388,6 +4488,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:VDD")
+		(at 40.64 30.48 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "02fe7c8c-3f68-4416-b741-4ac78e06e04a")
+		(property "Reference" "#PWR045"
+			(at 40.64 34.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VDD"
+			(at 40.64 25.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 40.64 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 40.64 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VDD\""
+			(at 40.64 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "2332a974-4a4c-4ac8-932f-325a27ee4742")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "#PWR045")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:L")
 		(at 127 87.63 180)
 		(unit 1)
@@ -4412,7 +4578,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Inductor_SMD:L_0402_1005Metric"
 			(at 127 87.63 0)
 			(effects
 				(font
@@ -4432,6 +4598,15 @@
 		)
 		(property "Description" "Inductor"
 			(at 127 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/murata-electronics/LQG15WZ8N2J02D/6798723"
+			(at 127 87.63 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4479,7 +4654,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Inductor_SMD:L_0402_1005Metric"
 			(at 135.89 93.98 0)
 			(effects
 				(font
@@ -4499,6 +4674,15 @@
 		)
 		(property "Description" "Inductor"
 			(at 135.89 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/murata-electronics/LQG15HS3N9S02D/662866?s=N4IgTCBcDaIDIEUDiBGArACQMoGYByAnFgAxgAiIAugL5A"
+			(at 135.89 93.98 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4588,6 +4772,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:VDD")
+		(at 226.06 49.53 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0c10702d-1d2d-4b77-a7fd-10290b0b52e0")
+		(property "Reference" "#PWR040"
+			(at 226.06 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VDD"
+			(at 226.06 44.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 226.06 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 226.06 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VDD\""
+			(at 226.06 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "904ce483-1b58-4495-b94e-c22b75f4c3e2")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "#PWR040")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 62.23 43.18 0)
 		(unit 1)
@@ -4648,6 +4898,85 @@
 			(project "nrf24l01_pa_lna"
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "#PWR014")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 226.06 55.88 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0f663948-b159-4b58-8b31-15e9b238e282")
+		(property "Reference" "C24"
+			(at 229.87 54.6099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1u"
+			(at 229.87 57.1499 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 227.0252 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 226.06 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 226.06 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX5R6BB105/2833604"
+			(at 226.06 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "3210191c-2d7d-448a-b5c9-8182bb982d35")
+		)
+		(pin "2"
+			(uuid "44d18dbd-308e-4d8d-ba01-0eaaedb4cf25")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "C24")
 					(unit 1)
 				)
 			)
@@ -4875,7 +5204,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 57.15 93.218 90)
 			(effects
 				(font
@@ -4895,6 +5224,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 57.15 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/AC0402JR-0722RL/5895625"
+			(at 57.15 91.44 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4945,7 +5283,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 306.3748 96.52 0)
 			(effects
 				(font
@@ -4964,6 +5302,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 307.34 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CQ0402ARNPO9BN1R5/6097707"
 			(at 307.34 100.33 0)
 			(effects
 				(font
@@ -5012,7 +5359,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 57.15 80.518 90)
 			(effects
 				(font
@@ -5032,6 +5379,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 57.15 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/AC0402JR-0722RL/5895625"
+			(at 57.15 78.74 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5148,7 +5504,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 63.1952 40.64 0)
 			(effects
 				(font
@@ -5167,6 +5523,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 62.23 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
 			(at 62.23 36.83 0)
 			(effects
 				(font
@@ -5218,7 +5583,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 64.4652 111.76 0)
 			(effects
 				(font
@@ -5237,6 +5602,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 63.5 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R7BB333/2833585"
 			(at 63.5 107.95 0)
 			(effects
 				(font
@@ -5393,6 +5767,217 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 50.8 43.18 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "29ef08c0-7bc8-4ec8-8baa-50af225d281e")
+		(property "Reference" "#PWR048"
+			(at 50.8 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 50.8 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 50.8 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 50.8 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 50.8 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d28c5d79-2d9a-4ed4-87ed-8fb171475cc3")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "#PWR048")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 214.63 55.88 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "2cc47485-31fa-4f52-b767-2004c999a6a8")
+		(property "Reference" "C23"
+			(at 218.44 54.6099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1u"
+			(at 218.44 57.1499 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 215.5952 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 214.63 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 214.63 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX5R6BB105/2833604"
+			(at 214.63 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "68095f19-3e47-451f-abb9-bb93968e358b")
+		)
+		(pin "2"
+			(uuid "d54a61bd-9d00-4178-8d37-3668d965a9ce")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "C23")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 40.64 43.18 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "2e1ea5ae-fdae-4a0e-9c91-49b2d829cb57")
+		(property "Reference" "#PWR046"
+			(at 40.64 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 40.64 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 40.64 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 40.64 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 40.64 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "9f52353e-9a0f-410c-aad6-4c6c20bdf156")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "#PWR046")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C")
 		(at 82.55 149.86 0)
 		(unit 1)
@@ -5411,7 +5996,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22p"
+		(property "Value" "18p"
 			(at 86.36 151.1299 0)
 			(effects
 				(font
@@ -5420,7 +6005,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 83.5152 153.67 0)
 			(effects
 				(font
@@ -5439,6 +6024,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 82.55 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402JRNPO9BN180/2833580"
 			(at 82.55 149.86 0)
 			(effects
 				(font
@@ -5487,7 +6081,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Inductor_SMD:L_0402_1005Metric"
 			(at 336.55 93.98 0)
 			(effects
 				(font
@@ -5514,6 +6108,15 @@
 				(hide yes)
 			)
 		)
+		(property "url" "https://www.digikey.com/en/products/detail/murata-electronics/lqg15hs2n4s02d/2594219"
+			(at 336.55 93.98 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "4aa3b182-1bfa-4e44-868f-4555d630c551")
 		)
@@ -5531,7 +6134,7 @@
 	)
 	(symbol
 		(lib_id "power:VDD")
-		(at 237.49 49.53 0)
+		(at 248.92 49.53 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -5540,7 +6143,7 @@
 		(fields_autoplaced yes)
 		(uuid "34b440be-9726-4379-b381-c974b4d9020f")
 		(property "Reference" "#PWR024"
-			(at 237.49 53.34 0)
+			(at 248.92 53.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5549,7 +6152,7 @@
 			)
 		)
 		(property "Value" "VDD"
-			(at 237.49 44.45 0)
+			(at 248.92 44.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5557,7 +6160,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 237.49 49.53 0)
+			(at 248.92 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5566,7 +6169,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 237.49 49.53 0)
+			(at 248.92 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5575,7 +6178,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"VDD\""
-			(at 237.49 49.53 0)
+			(at 248.92 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5746,7 +6349,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22p"
+		(property "Value" "18p"
 			(at 105.41 151.1299 0)
 			(effects
 				(font
@@ -5755,7 +6358,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 102.5652 153.67 0)
 			(effects
 				(font
@@ -5774,6 +6377,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 101.6 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402JRNPO9BN180/2833580"
 			(at 101.6 149.86 0)
 			(effects
 				(font
@@ -5822,7 +6434,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 191.77 105.918 90)
 			(effects
 				(font
@@ -5842,6 +6454,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 191.77 104.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/RC0402JR-071KL/726408"
+			(at 191.77 104.14 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5892,7 +6513,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 260.6548 96.52 0)
 			(effects
 				(font
@@ -5911,6 +6532,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 261.62 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CQ0402ARNPO9BNR30/6097712"
 			(at 261.62 100.33 0)
 			(effects
 				(font
@@ -6025,7 +6655,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 191.77 110.998 90)
 			(effects
 				(font
@@ -6045,6 +6675,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 191.77 109.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/RC0402JR-071KL/726408"
+			(at 191.77 109.22 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6095,7 +6734,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 119.0752 40.64 0)
 			(effects
 				(font
@@ -6122,6 +6761,15 @@
 				(hide yes)
 			)
 		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
+			(at 118.11 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "c559582d-167b-48f2-82fd-4b711a563525")
 		)
@@ -6132,6 +6780,92 @@
 			(project ""
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "C1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_02x04_Odd_Even")
+		(at 68.58 193.04 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "49c9166e-cc15-492b-a288-8d36b04a7deb")
+		(property "Reference" "J3"
+			(at 69.85 184.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Conn_02x04_Odd_Even"
+			(at 69.85 186.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical"
+			(at 68.58 193.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 68.58 193.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, double row, 02x04, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 68.58 193.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "3924d05a-d983-4843-a954-001db101a939")
+		)
+		(pin "5"
+			(uuid "aa388594-7fb0-4853-8b09-79373c2cd17b")
+		)
+		(pin "7"
+			(uuid "2e62e515-d476-4dc9-b2b4-07d774d45dd0")
+		)
+		(pin "2"
+			(uuid "ab19044f-3604-41f0-abb1-f8cfb944441c")
+		)
+		(pin "3"
+			(uuid "0cb98057-4c3c-4680-b7c1-92408f84269f")
+		)
+		(pin "4"
+			(uuid "09855efc-f39d-4d0b-93ff-547ed668be5e")
+		)
+		(pin "8"
+			(uuid "37e8dee1-7a0c-44c0-8d9a-9ac359576840")
+		)
+		(pin "6"
+			(uuid "c9ca9537-df39-4a06-9ad5-e3d4ef424ec3")
+		)
+		(instances
+			(project ""
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "J3")
 					(unit 1)
 				)
 			)
@@ -6428,7 +7162,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 156.5148 96.52 0)
 			(effects
 				(font
@@ -6455,6 +7189,15 @@
 				(hide yes)
 			)
 		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CQ0402BRNPO9BN1R0/5884881"
+			(at 157.48 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "b17962d6-5146-49e9-9900-2ad28087d586")
 		)
@@ -6472,16 +7215,16 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 237.49 55.88 0)
+		(at 40.64 36.83 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "510a0e2d-7af5-48fb-bab4-315ca9a5f085")
-		(property "Reference" "C15"
-			(at 241.3 54.6099 0)
+		(uuid "50b2825b-5f5f-4d02-b282-dad284b2d4e4")
+		(property "Reference" "C26"
+			(at 44.45 35.5599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6489,8 +7232,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1u"
-			(at 241.3 57.1499 0)
+		(property "Value" "10n"
+			(at 44.45 38.0999 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6498,8 +7241,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
-			(at 238.4552 59.69 0)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 41.6052 40.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6508,7 +7251,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 237.49 55.88 0)
+			(at 40.64 36.83 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6517,7 +7260,95 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 237.49 55.88 0)
+			(at 40.64 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
+			(at 40.64 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e9a31f7e-77eb-4c1c-ac45-f369b441344e")
+		)
+		(pin "2"
+			(uuid "2884cbc7-71c2-4a30-bde9-d22aa43884f4")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "C26")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 248.92 55.88 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "510a0e2d-7af5-48fb-bab4-315ca9a5f085")
+		(property "Reference" "C15"
+			(at 252.73 54.6099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1u"
+			(at 252.73 57.1499 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 249.8852 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 248.92 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 248.92 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX5R6BB105/2833604"
+			(at 248.92 55.88 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6568,7 +7399,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 345.7448 96.52 0)
 			(effects
 				(font
@@ -6587,6 +7418,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 346.71 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CQ0402ARNPO9BN1R5/6097707"
 			(at 346.71 100.33 0)
 			(effects
 				(font
@@ -6636,7 +7476,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Crystal:Crystal_HC18-U_Vertical"
 			(at 92.71 133.35 0)
 			(effects
 				(font
@@ -6663,6 +7503,15 @@
 				(hide yes)
 			)
 		)
+		(property "url" "https://www.digikey.com/en/products/detail/ecs-inc/ECS-160-12-4X-GM/18108720"
+			(at 92.71 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "e852b6a5-b076-4017-a64d-002addf0744d")
 		)
@@ -6679,8 +7528,87 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:C")
+		(at 29.21 36.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "5914b9fe-d7b7-48eb-a59e-bf0046c43433")
+		(property "Reference" "C25"
+			(at 33.02 35.5599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10n"
+			(at 33.02 38.0999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 30.1752 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 29.21 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 29.21 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
+			(at 29.21 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "82c77c15-979c-49c9-b04b-766d9938220d")
+		)
+		(pin "2"
+			(uuid "7c84b988-411c-40e2-99ff-d740e3c4ac0e")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "C25")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
-		(at 226.06 62.23 0)
+		(at 237.49 62.23 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6689,7 +7617,7 @@
 		(fields_autoplaced yes)
 		(uuid "59a51ee6-d8e0-40cd-93ec-0111fb583573")
 		(property "Reference" "#PWR023"
-			(at 226.06 68.58 0)
+			(at 237.49 68.58 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6698,7 +7626,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 226.06 67.31 0)
+			(at 237.49 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6706,7 +7634,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 226.06 62.23 0)
+			(at 237.49 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6715,7 +7643,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 226.06 62.23 0)
+			(at 237.49 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6724,7 +7652,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 226.06 62.23 0)
+			(at 237.49 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6931,6 +7859,15 @@
 				(hide yes)
 			)
 		)
+		(property "url" "https://www.digikey.com/en/products/detail/microchip-technology/MCP1802T-3302I-OT/1679144?s=N4IgjCBcpg7LBOKoDGUBmBDANgZwKYA0IA9lANriwAsYYArCALrEAOALlCAMrsBOASwB2AcxABfYgFoATMhBpI-AK5FSFEIybjJIOZEoBbFKzAAOAAxztQA"
+			(at 69.85 251.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "c29a07de-b30c-4856-a8c7-b0ad9b91cdcf")
 		)
@@ -7009,7 +7946,7 @@
 				(hide yes)
 			)
 		)
-		(property "URL" "https://www.digikey.com/product-detail/en/samsung-electro-mechanics-america-inc/CL10B475KQ8NQNC/1276-2087-1-ND/3890173"
+		(property "url" "https://www.digikey.com/product-detail/en/samsung-electro-mechanics-america-inc/CL10B475KQ8NQNC/1276-2087-1-ND/3890173"
 			(at 83.82 255.27 0)
 			(effects
 				(font
@@ -7058,7 +7995,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 57.15 85.598 90)
 			(effects
 				(font
@@ -7078,6 +8015,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 57.15 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/AC0402JR-0722RL/5895625"
+			(at 57.15 83.82 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7168,7 +8114,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 237.49 62.23 0)
+		(at 248.92 62.23 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7177,7 +8123,7 @@
 		(fields_autoplaced yes)
 		(uuid "6a7ccf2d-847c-4905-8f76-97a8396616fe")
 		(property "Reference" "#PWR025"
-			(at 237.49 68.58 0)
+			(at 248.92 68.58 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7186,7 +8132,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 237.49 67.31 0)
+			(at 248.92 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7194,7 +8140,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 237.49 62.23 0)
+			(at 248.92 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7203,7 +8149,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 237.49 62.23 0)
+			(at 248.92 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7212,7 +8158,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 237.49 62.23 0)
+			(at 248.92 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7257,7 +8203,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 191.77 116.078 90)
 			(effects
 				(font
@@ -7284,6 +8230,15 @@
 				(hide yes)
 			)
 		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/RC0402JR-0722KL/726445"
+			(at 191.77 114.3 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "080da0dc-0bd3-45fa-a2d7-3c3dd968ee9e")
 		)
@@ -7294,6 +8249,72 @@
 			(project "nrf24l01_pa_lna"
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "R11")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:VDD")
+		(at 214.63 49.53 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "6ca384e6-6f8e-4fd2-a575-2e4290ea1fd4")
+		(property "Reference" "#PWR037"
+			(at 214.63 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VDD"
+			(at 214.63 44.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 214.63 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 214.63 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VDD\""
+			(at 214.63 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ce4a399-f0dd-487d-bc88-75df35f12e02")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "#PWR037")
 					(unit 1)
 				)
 			)
@@ -7721,7 +8742,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 152.4 93.0148 0)
 			(effects
 				(font
@@ -7748,6 +8769,15 @@
 				(hide yes)
 			)
 		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CQ0402ARNPO9BN1R5/6097707"
+			(at 148.59 93.98 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "cf5c9011-d848-40c9-9ee0-bfa4b5bcc471")
 		)
@@ -7758,6 +8788,72 @@
 			(project "nrf24l01_pa_lna"
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "C4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 214.63 62.23 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "79c18555-19c2-479b-9c56-b096ce61fc6c")
+		(property "Reference" "#PWR039"
+			(at 214.63 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 214.63 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 214.63 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 214.63 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 214.63 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8cef22a8-f12e-4a25-83e5-5845809cd6df")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "#PWR039")
 					(unit 1)
 				)
 			)
@@ -7830,6 +8926,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 226.06 62.23 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "84214674-db69-4295-bb14-fc7c801148f4")
+		(property "Reference" "#PWR041"
+			(at 226.06 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 226.06 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 226.06 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 226.06 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 226.06 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b7458ae9-3a85-4f86-9110-9234b8630301")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "#PWR041")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C")
 		(at 73.66 36.83 0)
 		(unit 1)
@@ -7857,7 +9019,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 74.6252 40.64 0)
 			(effects
 				(font
@@ -7876,6 +9038,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 73.66 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
 			(at 73.66 36.83 0)
 			(effects
 				(font
@@ -7924,7 +9095,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Inductor_SMD:L_0402_1005Metric"
 			(at 297.18 93.98 0)
 			(effects
 				(font
@@ -7944,6 +9115,15 @@
 		)
 		(property "Description" "Inductor"
 			(at 297.18 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/murata-electronics/lqg15hs2n4s02d/2594219"
+			(at 297.18 93.98 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7991,7 +9171,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 57.15 77.978 90)
 			(effects
 				(font
@@ -8011,6 +9191,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 57.15 76.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/AC0402JR-0722RL/5895625"
+			(at 57.15 76.2 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8231,6 +9420,138 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 29.21 43.18 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "95630a96-1906-4d2d-a66c-3c6cd4e24d80")
+		(property "Reference" "#PWR044"
+			(at 29.21 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 29.21 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 29.21 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 29.21 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 29.21 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "706492cd-aefa-41e7-bd41-f5072706d55b")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "#PWR044")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:VDD")
+		(at 29.21 30.48 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "95f65089-e193-48bd-9507-8e9b0673383e")
+		(property "Reference" "#PWR042"
+			(at 29.21 34.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VDD"
+			(at 29.21 25.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 29.21 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 29.21 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VDD\""
+			(at 29.21 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "80784a5a-3c98-47a7-b8d5-12d6f7d96d62")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "#PWR042")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "rfx2401c:RFX2401C")
 		(at 229.87 114.3 0)
 		(unit 1)
@@ -8275,6 +9596,15 @@
 			)
 		)
 		(property "Description" ""
+			(at 229.87 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/skyworks-solutions-inc/RFX2401C/6172935"
 			(at 229.87 114.3 0)
 			(effects
 				(font
@@ -8344,6 +9674,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:VDD")
+		(at 50.8 30.48 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "97867a36-9736-4c25-9e4b-43d60ace8add")
+		(property "Reference" "#PWR047"
+			(at 50.8 34.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VDD"
+			(at 50.8 25.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 50.8 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 50.8 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VDD\""
+			(at 50.8 30.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "621ff8c9-b2b2-45ed-8772-42d30a142f3a")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "#PWR047")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 54.61 96.52 90)
 		(unit 1)
@@ -8368,7 +9764,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 54.61 98.298 90)
 			(effects
 				(font
@@ -8388,6 +9784,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 54.61 96.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/RC0402JR-0722KL/726445"
+			(at 54.61 96.52 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8438,7 +9843,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 122.8852 72.39 0)
 			(effects
 				(font
@@ -8457,6 +9862,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 121.92 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R8BB222/5195123"
 			(at 121.92 68.58 0)
 			(effects
 				(font
@@ -8529,6 +9943,15 @@
 			)
 		)
 		(property "Description" "Ultra low power 2.4GHz RF Transceiver, QFN-20"
+			(at 91.44 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/nordic-semiconductor-asa/NRF24L01/4691779"
 			(at 91.44 88.9 0)
 			(effects
 				(font
@@ -8697,7 +10120,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 57.15 83.058 90)
 			(effects
 				(font
@@ -8717,6 +10140,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 57.15 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/AC0402JR-0722RL/5895625"
+			(at 57.15 81.28 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8767,7 +10199,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 135.5852 72.39 0)
 			(effects
 				(font
@@ -8786,6 +10218,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 134.62 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402CRNPO9BN4R7/2103105"
 			(at 134.62 68.58 0)
 			(effects
 				(font
@@ -8834,7 +10275,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 57.15 90.678 90)
 			(effects
 				(font
@@ -8861,6 +10302,15 @@
 				(hide yes)
 			)
 		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/AC0402JR-0722RL/5895625"
+			(at 57.15 88.9 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "cfe3a785-8200-4b6b-a615-d4b5d12f3589")
 		)
@@ -8878,7 +10328,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 226.06 55.88 0)
+		(at 237.49 55.88 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8887,7 +10337,7 @@
 		(fields_autoplaced yes)
 		(uuid "b6542c0b-d4e0-4ae1-bf99-b608cadf1119")
 		(property "Reference" "C14"
-			(at 229.87 54.6099 0)
+			(at 241.3 54.6099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8896,7 +10346,7 @@
 			)
 		)
 		(property "Value" "1u"
-			(at 229.87 57.1499 0)
+			(at 241.3 57.1499 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8904,8 +10354,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
-			(at 227.0252 59.69 0)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 238.4552 59.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8914,7 +10364,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 226.06 55.88 0)
+			(at 237.49 55.88 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8923,7 +10373,16 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 226.06 55.88 0)
+			(at 237.49 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX5R6BB105/2833604"
+			(at 237.49 55.88 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9040,7 +10499,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 107.6452 40.64 0)
 			(effects
 				(font
@@ -9059,6 +10518,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 106.68 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
 			(at 106.68 36.83 0)
 			(effects
 				(font
@@ -9110,7 +10578,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 322.8848 96.52 0)
 			(effects
 				(font
@@ -9137,6 +10605,15 @@
 				(hide yes)
 			)
 		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CQ0402ARNPO9BN1R5/6097707"
+			(at 323.85 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "018b2d0f-a5f7-49ab-a429-ef0876496a81")
 		)
@@ -9147,92 +10624,6 @@
 			(project "nrf24l01_pa_lna"
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "C19")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector_Generic:Conn_02x04_Counter_Clockwise")
-		(at 68.58 193.04 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "c4a1fe4d-6407-4730-92be-b8fe88b11b00")
-		(property "Reference" "J2"
-			(at 69.85 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "Conn_02x04_Counter_Clockwise"
-			(at 69.85 186.69 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 68.58 193.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 68.58 193.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Generic connector, double row, 02x04, counter clockwise pin numbering scheme (similar to DIP package numbering), script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 68.58 193.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "3"
-			(uuid "ca7be099-e306-4097-bbc3-75d09ff8f607")
-		)
-		(pin "5"
-			(uuid "c5e6a6c5-a184-42e2-85eb-364022429ffe")
-		)
-		(pin "8"
-			(uuid "c4009fc2-a6ed-4550-990e-ebe37fa9550a")
-		)
-		(pin "6"
-			(uuid "15fafa9c-c8f4-4822-9cd5-8c58e538d8d3")
-		)
-		(pin "1"
-			(uuid "c14e6459-8fe2-47f4-bf2b-3ca6086d7fc4")
-		)
-		(pin "7"
-			(uuid "954e2ce1-9e63-4c3b-9364-e0ac90c6dcfe")
-		)
-		(pin "2"
-			(uuid "99f06fb3-0735-4f63-82be-135a8672481d")
-		)
-		(pin "4"
-			(uuid "a899f289-4ba1-4196-aaf5-a7c94b18b491")
-		)
-		(instances
-			(project ""
-				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
-					(reference "J2")
 					(unit 1)
 				)
 			)
@@ -9263,7 +10654,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
 			(at 92.71 142.748 90)
 			(effects
 				(font
@@ -9283,6 +10674,15 @@
 		)
 		(property "Description" "Resistor"
 			(at 92.71 140.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/te-connectivity-passive-product/CRGCQ0402J1M0/8576668"
+			(at 92.71 140.97 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9333,7 +10733,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 283.5148 96.52 0)
 			(effects
 				(font
@@ -9352,6 +10752,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 284.48 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CQ0402ARNPO9BN1R5/6097707"
 			(at 284.48 100.33 0)
 			(effects
 				(font
@@ -9466,7 +10875,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Inductor_SMD:L_0402_1005Metric"
 			(at 139.7 81.28 0)
 			(effects
 				(font
@@ -9486,6 +10895,15 @@
 		)
 		(property "Description" "Inductor"
 			(at 139.7 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/vishay-dale/ILC0402ER2N7S/2574943?s=N4IgTCBcDaIJIBkDCAGALCsBRASmAcgOwDKIAugL5A"
+			(at 139.7 81.28 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9562,7 +10980,7 @@
 				(hide yes)
 			)
 		)
-		(property "URL" "https://www.digikey.com/product-detail/en/samsung-electro-mechanics-america-inc/CL10B475KQ8NQNC/1276-2087-1-ND/3890173"
+		(property "url" "https://www.digikey.com/product-detail/en/samsung-electro-mechanics-america-inc/CL10B475KQ8NQNC/1276-2087-1-ND/3890173"
 			(at 38.1 255.27 0)
 			(effects
 				(font
@@ -9680,7 +11098,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 84.7852 40.64 0)
 			(effects
 				(font
@@ -9699,6 +11117,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 83.82 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
 			(at 83.82 36.83 0)
 			(effects
 				(font
@@ -9790,7 +11217,7 @@
 	)
 	(symbol
 		(lib_id "power:VDD")
-		(at 226.06 49.53 0)
+		(at 237.49 49.53 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9799,7 +11226,7 @@
 		(fields_autoplaced yes)
 		(uuid "ed4b8ff5-e125-416f-a243-837ba15ffa0e")
 		(property "Reference" "#PWR022"
-			(at 226.06 53.34 0)
+			(at 237.49 53.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9808,7 +11235,7 @@
 			)
 		)
 		(property "Value" "VDD"
-			(at 226.06 44.45 0)
+			(at 237.49 44.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9816,7 +11243,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 226.06 49.53 0)
+			(at 237.49 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9825,7 +11252,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 226.06 49.53 0)
+			(at 237.49 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9834,7 +11261,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"VDD\""
-			(at 226.06 49.53 0)
+			(at 237.49 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9849,6 +11276,85 @@
 			(project "nrf24l01_pa_lna"
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "#PWR022")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 50.8 36.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f4e91554-81e4-46f3-8d2b-01ed34fa012d")
+		(property "Reference" "C27"
+			(at 54.61 35.5599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10n"
+			(at 54.61 38.0999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 51.7652 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 50.8 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 50.8 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
+			(at 50.8 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "6c32c11c-3512-492a-a1c7-a41ceedbf53c")
+		)
+		(pin "2"
+			(uuid "65fa1c1d-90c3-4ced-b215-c48a33d64893")
+		)
+		(instances
+			(project "nrf24l01_pa_lna"
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "C27")
 					(unit 1)
 				)
 			)
@@ -9907,6 +11413,15 @@
 				(hide yes)
 			)
 		)
+		(property "url" "https://www.digikey.com/en/products/detail/amphenol-rf/132255RP/1989874"
+			(at 370.84 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "7a2c7375-a56f-4ef4-b510-cd1b908ab8e1")
 		)
@@ -9950,7 +11465,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
 			(at 96.2152 40.64 0)
 			(effects
 				(font
@@ -9969,6 +11484,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 95.25 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/yageo/CC0402KRX7R9BB103/2103087"
 			(at 95.25 36.83 0)
 			(effects
 				(font
