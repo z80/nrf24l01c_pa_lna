@@ -1599,12 +1599,20 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Regulator_Linear:MCP1802x-xx02xOT"
+		(symbol "Regulator_Linear:MCP1825S"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "U"
-				(at -6.35 6.35 0)
+				(at -3.81 3.175 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "MCP1825S"
+				(at 0 3.175 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -1612,36 +1620,25 @@
 					(justify left)
 				)
 			)
-			(property "Value" "MCP1802x-xx02xOT"
+			(property "Footprint" ""
+				(at -2.54 3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://ww1.microchip.com/downloads/en/devicedoc/22056b.pdf"
 				(at 0 6.35 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
-				)
-			)
-			(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
-				(at -6.35 8.89 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-						(italic yes)
-					)
-					(justify left)
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "http://ww1.microchip.com/downloads/en/DeviceDoc/22053C.pdf"
-				(at 0 -2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "150mA, Tiny CMOS LDO With Shutdown, Fixed Voltage, SOT-23-5"
+			(property "Description" "500mA, Low-Voltage, Low Quiescent Current LDO Regulator, SOT-223, TO-220, TO-263"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1650,7 +1647,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_keywords" "LDO Linear Voltage Regulator"
+			(property "ki_keywords" "regulator linear ldo"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1659,7 +1656,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_fp_filters" "SOT?23*"
+			(property "ki_fp_filters" "SOT?223*TabPin2* TO?220* TO?263*"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1668,10 +1665,10 @@
 					(hide yes)
 				)
 			)
-			(symbol "MCP1802x-xx02xOT_0_1"
+			(symbol "MCP1825S_0_1"
 				(rectangle
-					(start -7.62 5.08)
-					(end 7.62 -5.08)
+					(start -5.08 1.905)
+					(end 5.08 -5.08)
 					(stroke
 						(width 0.254)
 						(type default)
@@ -1681,11 +1678,11 @@
 					)
 				)
 			)
-			(symbol "MCP1802x-xx02xOT_1_1"
+			(symbol "MCP1825S_1_1"
 				(pin power_in line
-					(at -10.16 2.54 0)
+					(at -7.62 0 0)
 					(length 2.54)
-					(name "VIN"
+					(name "VI"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1693,24 +1690,6 @@
 						)
 					)
 					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input line
-					(at -10.16 0 0)
-					(length 2.54)
-					(name "~{SHDN}"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1736,36 +1715,17 @@
 						)
 					)
 				)
-				(pin no_connect line
+				(pin power_out line
 					(at 7.62 0 180)
 					(length 2.54)
-					(hide yes)
-					(name "NC"
+					(name "VO"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin power_out line
-					(at 10.16 2.54 180)
-					(length 2.54)
-					(name "VOUT"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
+					(number "3"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2593,12 +2553,6 @@
 		(uuid "7ffda385-e3c0-43ad-812b-b0a071542904")
 	)
 	(junction
-		(at 54.61 248.92)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "a31980a1-408d-4724-83a7-dab3d15c1be1")
-	)
-	(junction
 		(at 222.25 152.4)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2647,7 +2601,7 @@
 		(uuid "f98d853e-8a86-4dba-8d4c-551dd9e8f265")
 	)
 	(junction
-		(at 83.82 248.92)
+		(at 78.74 248.92)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "fabeaf1f-0c87-4c9d-bbac-dbaaf20d38dd")
@@ -2784,7 +2738,7 @@
 	)
 	(wire
 		(pts
-			(xy 80.01 248.92) (xy 83.82 248.92)
+			(xy 74.93 248.92) (xy 78.74 248.92)
 		)
 		(stroke
 			(width 0)
@@ -2964,7 +2918,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 248.92) (xy 83.82 251.46)
+			(xy 78.74 248.92) (xy 78.74 251.46)
 		)
 		(stroke
 			(width 0)
@@ -3024,7 +2978,7 @@
 	)
 	(wire
 		(pts
-			(xy 54.61 248.92) (xy 59.69 248.92)
+			(xy 38.1 248.92) (xy 59.69 248.92)
 		)
 		(stroke
 			(width 0)
@@ -3081,16 +3035,6 @@
 			(type default)
 		)
 		(uuid "398b1001-36aa-42b4-9f45-0439944a85e7")
-	)
-	(wire
-		(pts
-			(xy 38.1 248.92) (xy 54.61 248.92)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3a08ec58-5147-4469-9acd-456824def3f2")
 	)
 	(wire
 		(pts
@@ -3164,16 +3108,6 @@
 	)
 	(wire
 		(pts
-			(xy 59.69 251.46) (xy 54.61 251.46)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4b3536f3-5aaa-4ad0-84e7-fb484445fc21")
-	)
-	(wire
-		(pts
 			(xy 95.25 30.48) (xy 95.25 33.02)
 		)
 		(stroke
@@ -3204,7 +3138,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 248.92) (xy 92.71 248.92)
+			(xy 78.74 248.92) (xy 87.63 248.92)
 		)
 		(stroke
 			(width 0)
@@ -3354,16 +3288,6 @@
 	)
 	(wire
 		(pts
-			(xy 54.61 251.46) (xy 54.61 248.92)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "678bf6ab-1dd8-4b95-8ea0-0eefe60c597f")
-	)
-	(wire
-		(pts
 			(xy 95.25 40.64) (xy 95.25 43.18)
 		)
 		(stroke
@@ -3374,7 +3298,7 @@
 	)
 	(wire
 		(pts
-			(xy 69.85 259.08) (xy 69.85 261.62)
+			(xy 67.31 256.54) (xy 67.31 259.08)
 		)
 		(stroke
 			(width 0)
@@ -3434,7 +3358,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 259.08) (xy 83.82 261.62)
+			(xy 78.74 259.08) (xy 78.74 261.62)
 		)
 		(stroke
 			(width 0)
@@ -4224,7 +4148,7 @@
 	)
 	(wire
 		(pts
-			(xy 92.71 248.92) (xy 92.71 246.38)
+			(xy 87.63 248.92) (xy 87.63 246.38)
 		)
 		(stroke
 			(width 0)
@@ -5111,7 +5035,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 69.85 261.62 0)
+		(at 67.31 259.08 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -5119,7 +5043,7 @@
 		(dnp no)
 		(uuid "179409d3-549e-4567-a30e-8fb5bc011834")
 		(property "Reference" "#PWR043"
-			(at 69.85 267.97 0)
+			(at 67.31 265.43 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5128,7 +5052,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 69.85 265.43 0)
+			(at 67.31 262.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5136,7 +5060,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 69.85 261.62 0)
+			(at 67.31 259.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5145,7 +5069,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 69.85 261.62 0)
+			(at 67.31 259.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5154,7 +5078,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 69.85 261.62 0)
+			(at 67.31 259.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6802,7 +6726,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 83.82 261.62 0)
+		(at 78.74 261.62 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6810,7 +6734,7 @@
 		(dnp no)
 		(uuid "4bf2fd71-94a4-44f0-8827-fb8867501f38")
 		(property "Reference" "#PWR035"
-			(at 83.82 267.97 0)
+			(at 78.74 267.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6819,7 +6743,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 83.82 265.43 0)
+			(at 78.74 265.43 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6827,7 +6751,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 83.82 261.62 0)
+			(at 78.74 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6836,7 +6760,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 83.82 261.62 0)
+			(at 78.74 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6845,7 +6769,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 83.82 261.62 0)
+			(at 78.74 261.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7510,96 +7434,8 @@
 		)
 	)
 	(symbol
-		(lib_id "Regulator_Linear:MCP1802x-xx02xOT")
-		(at 69.85 251.46 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "5d2b6cde-1941-4d95-853f-06642959d601")
-		(property "Reference" "U3"
-			(at 69.85 241.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "MCP1802x-xx02xOT"
-			(at 69.85 243.84 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
-			(at 63.5 242.57 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-					(italic yes)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://ww1.microchip.com/downloads/en/DeviceDoc/22053C.pdf"
-			(at 69.85 254 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "150mA, Tiny CMOS LDO With Shutdown, Fixed Voltage, SOT-23-5"
-			(at 69.85 251.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "url" "https://www.digikey.com/en/products/detail/microchip-technology/MCP1802T-3302I-OT/1679144?s=N4IgjCBcpg7LBOKoDGUBmBDANgZwKYA0IA9lANriwAsYYArCALrEAOALlCAMrsBOASwB2AcxABfYgFoATMhBpI-AK5FSFEIybjJIOZEoBbFKzAAOAAxztQA"
-			(at 69.85 251.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "c29a07de-b30c-4856-a8c7-b0ad9b91cdcf")
-		)
-		(pin "3"
-			(uuid "05f7b330-b29a-4a9e-983d-267e4ec88e61")
-		)
-		(pin "2"
-			(uuid "24604180-a79a-47ae-a3c0-2deee3d4be79")
-		)
-		(pin "4"
-			(uuid "5de71f1a-f39d-4ced-837b-ad3404fe8af4")
-		)
-		(pin "5"
-			(uuid "c8218169-218b-49d4-ac87-0b9d875e02ae")
-		)
-		(instances
-			(project "nrf24l01_pa_lna"
-				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
-					(reference "U3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
-		(at 83.82 255.27 0)
+		(at 78.74 255.27 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7607,7 +7443,7 @@
 		(dnp no)
 		(uuid "5e8f5866-10e5-440e-a6e4-b031c3dfdb3e")
 		(property "Reference" "C22"
-			(at 84.455 252.73 0)
+			(at 79.375 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7616,7 +7452,7 @@
 			)
 		)
 		(property "Value" "4u7"
-			(at 84.455 257.81 0)
+			(at 79.375 257.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7625,7 +7461,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-			(at 84.7852 259.08 0)
+			(at 79.7052 259.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7634,7 +7470,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 83.82 255.27 0)
+			(at 78.74 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7643,7 +7479,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 83.82 255.27 0)
+			(at 78.74 255.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7652,7 +7488,7 @@
 			)
 		)
 		(property "url" "https://www.digikey.com/product-detail/en/samsung-electro-mechanics-america-inc/CL10B475KQ8NQNC/1276-2087-1-ND/3890173"
-			(at 83.82 255.27 0)
+			(at 78.74 255.27 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8994,7 +8830,7 @@
 	)
 	(symbol
 		(lib_id "power:VDD")
-		(at 92.71 246.38 0)
+		(at 87.63 246.38 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9003,7 +8839,7 @@
 		(fields_autoplaced yes)
 		(uuid "91cdc0b6-0183-4dd0-b314-90455afe2161")
 		(property "Reference" "#PWR036"
-			(at 92.71 250.19 0)
+			(at 87.63 250.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9012,7 +8848,7 @@
 			)
 		)
 		(property "Value" "VDD"
-			(at 92.71 241.3 0)
+			(at 87.63 241.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9020,7 +8856,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 92.71 246.38 0)
+			(at 87.63 246.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9029,7 +8865,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 92.71 246.38 0)
+			(at 87.63 246.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9038,7 +8874,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"VDD\""
-			(at 92.71 246.38 0)
+			(at 87.63 246.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9739,6 +9575,86 @@
 			(project "nrf24l01_pa_lna"
 				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
 					(reference "R4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Regulator_Linear:MCP1825S")
+		(at 67.31 248.92 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a6686918-5edc-4c90-a8ae-8f729e3d561e")
+		(property "Reference" "U4"
+			(at 67.31 242.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MCP1825S"
+			(at 67.31 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
+			(at 64.77 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://ww1.microchip.com/downloads/en/devicedoc/22056b.pdf"
+			(at 67.31 242.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "500mA, Low-Voltage, Low Quiescent Current LDO Regulator, SOT-223, TO-220, TO-263"
+			(at 67.31 248.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "url" "https://www.digikey.com/en/products/detail/microchip-technology/MCP1825S-3302E-DB/1636103?s=N4IgTCBcDaILIGEAKBGAHGArAZQLQGZ8AGMAUQHoARAIRAF0BfIA"
+			(at 67.31 248.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "8c40196b-40e1-46d2-a9db-518f70fd7ed9")
+		)
+		(pin "3"
+			(uuid "298bbebf-ca63-4ef6-bdd4-310ee5f446c3")
+		)
+		(pin "1"
+			(uuid "5c62eec7-3e84-42ad-96b9-45eae8e03618")
+		)
+		(instances
+			(project ""
+				(path "/45a19bd1-4465-4728-867b-7ac302c76a0c"
+					(reference "U4")
 					(unit 1)
 				)
 			)
