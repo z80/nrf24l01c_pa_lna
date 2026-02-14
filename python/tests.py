@@ -1,10 +1,23 @@
-from machine import SPI, Pin
+from machine import SPI
+from pyb import Pin
+import utime
+
+from nrf24l01 import NRF24L01
 
 #spi = SPI(1, baudrate=4000000, polarity=0, phase=0)
 #csn = Pin("X5", Pin.OUT, value=1)
 #ce  = Pin("X4", Pin.OUT, value=0)
 
 #nrf = NRF24L01(spi, csn, ce)
+
+def get_nrf():
+    spi = SPI(1)
+    cs  = Pin( "C4", mode=Pin.OUT, value=1 )
+    ce  = Pin( "C5", mode=Pin.OUT, value=0 )
+    irq = Pin( "A4", Pin.IN, Pin.PULL_UP )
+    nrf = NRF24L01( spi, cs, ce, payload_size=8 )
+
+    return nrf, cs, ce
 
 
 def nrf_status(nrf):
@@ -47,5 +60,33 @@ def nrf_health(nrf):
     verify = nrf.reg_read(0x06)
     nrf.reg_write(0x06, orig)
     print("RW test OK  =", verify == (orig ^ 1))
+
+
+
+def test_rx_mode(nrf):
+    radio = nrf
+
+    print("Initial STATUS =", hex(nrf_status(radio)))
+
+    print("\n=== Entering RX mode (start_listening) ===")
+    radio.start_listening()
+    utime.sleep_ms(5)
+
+    print("STATUS after start_listening =", hex(nrf_status(radio)))
+
+    print("\n=== Sampling STATUS in RX mode ===")
+    for i in range(5):
+        utime.sleep_ms(200)
+        print(f"Sample {i+1}:", hex(nrf_status(radio)))
+
+    print("\n=== Stopping RX mode ===")
+    radio.stop_listening()
+    utime.sleep_ms(2)
+
+    print("STATUS after stop_listening =", hex(nrf_status(radio)))
+    print("CE pin =", ce.value())
+
+    print("\n=== RX mode test complete ===")
+
 
 
