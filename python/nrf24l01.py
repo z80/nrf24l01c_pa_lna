@@ -264,12 +264,52 @@ class NRF24L01:
         status = self.reg_write(STATUS, RX_DR | TX_DS | MAX_RT)
         self.reg_write(CONFIG, self.reg_read(CONFIG) & ~PWR_UP)
 
-        if status & TX:
+        if status & TX_DS:
             return 1
 
         return 0
 
 
+    def enter_const_carrier(self, channel=None, power=POWER_3):
+        # Optional: change channel
+        if channel is not None:
+            self.set_channel(channel)
 
+        # Power up in TX mode (PRIM_RX = 0)
+        config = self.reg_read(CONFIG)
+        config |= PWR_UP
+        config &= ~PRIM_RX
+        self.reg_write(CONFIG, config)
+        utime.sleep_ms(2)  # >1.5 ms
+
+        # Set RF_SETUP: keep speed bits, set power + CW + PLL_LOCK
+        setup = self.reg_read(RF_SETUP)
+        setup &= 0b00110001  # keep only speed + reserved bits
+        setup |= power | CONT_WAVE | PLL_LOCK
+        self.reg_write(RF_SETUP, setup)
+
+        # CE high to start constant carrier
+        self.ce(1)
+
+    def leave_const_carrier(self):
+        # CE low, clear CW/PLL bits, optionally power down
+        self.ce(0)
+        setup = self.reg_read(RF_SETUP)
+        setup &= ~(CONT_WAVE | PLL_LOCK)
+        self.reg_write(RF_SETUP, setup)
+
+        config = self.reg_read(CONFIG)
+        config &= ~PWR_UP
+        self.reg_write(CONFIG, config)
+
+    
+    def disableAutoAck( self ):
+        EN_AA = const(0x01)
+        self.reg_write(EN_AA, 0x00)
+
+
+    def setNoRetries( self ):
+        self.reg_write(SETUP_RETR, 0)
+        
 
 
