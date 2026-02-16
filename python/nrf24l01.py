@@ -32,6 +32,9 @@ SPEED_1M = const(0x00)
 SPEED_2M = const(0x08)
 SPEED_250K = const(0x20)
 
+CONT_WAVE = const(0x80)
+PLL_LOCK  = const(0x40)
+
 # STATUS register
 RX_DR = const(0x40)  # RX data ready; write 1 to clear
 TX_DS = const(0x20)  # TX data sent; write 1 to clear
