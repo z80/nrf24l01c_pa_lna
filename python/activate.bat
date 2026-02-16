@@ -1,0 +1,1 @@
+..\..\micropython\.venv\scripts\activate
