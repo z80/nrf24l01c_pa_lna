@@ -1,6 +1,7 @@
 
 import utime
 import os
+from pyb import Pin
 import channels
 import nrf24l01
 from tests import get_nrf
