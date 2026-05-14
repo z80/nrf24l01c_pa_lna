@@ -18,16 +18,16 @@ FIFO_STATUS = const(0x17)
 DYNPD = const(0x1C)
 
 # CONFIG register
-EN_CRC = const(0x08)  # enable CRC
-CRCO = const(0x04)  # CRC encoding scheme; 0=1 byte, 1=2 bytes
-PWR_UP = const(0x02)  # 1=power up, 0=power down
-PRIM_RX = const(0x01)  # RX/TX control; 0=PTX, 1=PRX
+EN_CRC = const(0x08)
+CRCO = const(0x04)
+PWR_UP = const(0x02)
+PRIM_RX = const(0x01)
 
 # RF_SETUP register
-POWER_0 = const(0x00)  # -18 dBm
-POWER_1 = const(0x02)  # -12 dBm
-POWER_2 = const(0x04)  # -6 dBm
-POWER_3 = const(0x06)  # 0 dBm
+POWER_0 = const(0x00)
+POWER_1 = const(0x02)
+POWER_2 = const(0x04)
+POWER_3 = const(0x06)
 SPEED_1M = const(0x00)
 SPEED_2M = const(0x08)
 SPEED_250K = const(0x20)
@@ -36,80 +36,123 @@ CONT_WAVE = const(0x80)
 PLL_LOCK  = const(0x40)
 
 # STATUS register
-RX_DR = const(0x40)  # RX data ready; write 1 to clear
-TX_DS = const(0x20)  # TX data sent; write 1 to clear
-MAX_RT = const(0x10)  # max retransmits reached; write 1 to clear
+RX_DR = const(0x40)
+TX_DS = const(0x20)
+MAX_RT = const(0x10)
 
 # FIFO_STATUS register
-RX_EMPTY = const(0x01)  # 1 if RX FIFO is empty
+RX_EMPTY = const(0x01)
 
-# constants for instructions
-R_RX_PL_WID = const(0x60)  # read RX payload width
-R_RX_PAYLOAD = const(0x61)  # read RX payload
-W_TX_PAYLOAD = const(0xA0)  # write TX payload
-FLUSH_TX = const(0xE1)  # flush TX FIFO
-FLUSH_RX = const(0xE2)  # flush RX FIFO
-NOP = const(0xFF)  # use to read STATUS register
+# commands
+R_RX_PL_WID = const(0x60)
+R_RX_PAYLOAD = const(0x61)
+W_TX_PAYLOAD = const(0xA0)
+FLUSH_TX = const(0xE1)
+FLUSH_RX = const(0xE2)
+NOP = const(0xFF)
 
 
 class NRF24L01:
-    def __init__(self, spi, cs, ce, channel=46, payload_size=16):
+
+    # ------------------------------------------------------------
+    # Static helpers for optional external initialization
+    # ------------------------------------------------------------
+    @staticmethod
+    def init_spi_bus(spi, baudrate=4000000):
+        """Initialize SPI bus in nRF24L01-compatible mode."""
+        try:
+            master = spi.MASTER
+            spi.init(master, baudrate=baudrate, polarity=0, phase=0)
+        except AttributeError:
+            spi.init(baudrate=baudrate, polarity=0, phase=0)
+
+    @staticmethod
+    def init_radio_pins(cs, ce):
+        """Initialize CS and CE pins."""
+        cs.init(cs.OUT, value=1)
+        ce.init(ce.OUT, value=0)
+
+    @staticmethod
+    def init_irq_pin(irq_pin):
+        """Initialize IRQ pin as input with pull-up."""
+        irq_pin.init(irq_pin.IN, pull=irq_pin.PULL_UP)
+
+    # ------------------------------------------------------------
+    # Constructor
+    # ------------------------------------------------------------
+    def __init__(self, spi, cs, ce, channel=46, payload_size=16,
+                 init_spi=True, init_pins=True,
+                 irq=None, irq_handler=None):
+
         assert payload_size <= 32
 
-        self.buf = bytearray(1)
-
-        # store the pins
         self.spi = spi
         self.cs = cs
         self.ce = ce
-
-        # init the SPI bus and pins
-        self.init_spi(4000000)
-
-        # reset everything
-        ce.init(ce.OUT, value=0)
-        cs.init(cs.OUT, value=1)
-
+        self.irq = irq
+        self.irq_handler = irq_handler
+        self.buf = bytearray(1)
         self.payload_size = payload_size
         self.pipe0_read_addr = None
+
+        # Optional SPI init
+        if init_spi:
+            NRF24L01.init_spi_bus(spi)
+
+        # Optional pin init
+        if init_pins:
+            NRF24L01.init_radio_pins(cs, ce)
+
+        # Optional IRQ init
+        if irq is not None:
+            NRF24L01.init_irq_pin(irq)
+            if irq_handler is not None:
+                irq.irq(trigger=irq.IRQ_FALLING, handler=self._irq_wrapper)
+
         utime.sleep_ms(5)
 
-        # set address width to 5 bytes and check for device present
+        # Device presence check
         self.reg_write(SETUP_AW, 0b11)
         if self.reg_read(SETUP_AW) != 0b11:
             raise OSError("nRF24L01+ Hardware not responding")
 
-        # disable dynamic payloads
+        # Disable dynamic payloads
         self.reg_write(DYNPD, 0)
 
-        # auto retransmit delay: 1750us
-        # auto retransmit count: 8
+        # Auto retransmit: 1750us, count=8
         self.reg_write(SETUP_RETR, (6 << 4) | 8)
 
-        # set rf power and speed
-        self.set_power_speed(POWER_3, SPEED_250K)  # Best for point to point links
+        # RF power + speed
+        self.set_power_speed(POWER_3, SPEED_250K)
 
-        # init CRC
+        # CRC
         self.set_crc(2)
 
-        # clear status flags
+        # Clear status flags
         self.reg_write(STATUS, RX_DR | TX_DS | MAX_RT)
 
-        # set channel
+        # Channel
         self.set_channel(channel)
 
-        # flush buffers
+        # Flush FIFOs
         self.flush_rx()
         self.flush_tx()
 
-    def init_spi(self, baudrate):
-        try:
-            master = self.spi.MASTER
-        except AttributeError:
-            self.spi.init(baudrate=baudrate, polarity=0, phase=0)
-        else:
-            self.spi.init(master, baudrate=baudrate, polarity=0, phase=0)
+    # ------------------------------------------------------------
+    # IRQ wrapper (safe ISR)
+    # ------------------------------------------------------------
+    def _irq_wrapper(self, pin):
+        # Read + clear IRQ flags
+        status = self.read_status()
+        self.reg_write(STATUS, RX_DR | TX_DS | MAX_RT)
 
+        # Call user callback outside SPI operations
+        if self.irq_handler:
+            self.irq_handler(status)
+
+    # ------------------------------------------------------------
+    # Register access
+    # ------------------------------------------------------------
     def reg_read(self, reg):
         self.cs(0)
         self.spi.readinto(self.buf, reg)
@@ -134,7 +177,6 @@ class NRF24L01:
 
     def read_status(self):
         self.cs(0)
-        # STATUS register is always shifted during command transmit
         self.spi.readinto(self.buf, NOP)
         self.cs(1)
         return self.buf[0]
@@ -149,47 +191,51 @@ class NRF24L01:
         self.spi.readinto(self.buf, FLUSH_TX)
         self.cs(1)
 
-    # power is one of POWER_x defines; speed is one of SPEED_x defines
+    # ------------------------------------------------------------
+    # Configuration
+    # ------------------------------------------------------------
     def set_power_speed(self, power, speed):
         setup = self.reg_read(RF_SETUP) & 0b11010001
         self.reg_write(RF_SETUP, setup | power | speed)
 
-    # length in bytes: 0, 1 or 2
     def set_crc(self, length):
         config = self.reg_read(CONFIG) & ~(CRCO | EN_CRC)
-        if length == 0:
-            pass
-        elif length == 1:
+        if length == 1:
             config |= EN_CRC
-        else:
+        elif length == 2:
             config |= EN_CRC | CRCO
         self.reg_write(CONFIG, config)
 
     def set_channel(self, channel):
         self.reg_write(RF_CH, min(channel, 125))
 
-    # address should be a bytes object 5 bytes long
+    # ------------------------------------------------------------
+    # Pipes
+    # ------------------------------------------------------------
     def open_tx_pipe(self, address):
         assert len(address) == 5
         self.reg_write_bytes(RX_ADDR_P0, address)
         self.reg_write_bytes(TX_ADDR, address)
         self.reg_write(RX_PW_P0, self.payload_size)
 
-    # address should be a bytes object 5 bytes long
-    # pipe 0 and 1 have 5 byte address
-    # pipes 2-5 use same 4 most-significant bytes as pipe 1, plus 1 extra byte
     def open_rx_pipe(self, pipe_id, address):
         assert len(address) == 5
         assert 0 <= pipe_id <= 5
+
         if pipe_id == 0:
             self.pipe0_read_addr = address
+
         if pipe_id < 2:
             self.reg_write_bytes(RX_ADDR_P0 + pipe_id, address)
         else:
             self.reg_write(RX_ADDR_P0 + pipe_id, address[0])
+
         self.reg_write(RX_PW_P0 + pipe_id, self.payload_size)
         self.reg_write(EN_RXADDR, self.reg_read(EN_RXADDR) | (1 << pipe_id))
 
+    # ------------------------------------------------------------
+    # RX/TX
+    # ------------------------------------------------------------
     def start_listening(self):
         self.reg_write(CONFIG, self.reg_read(CONFIG) | PWR_UP | PRIM_RX)
         self.reg_write(STATUS, RX_DR | TX_DS | MAX_RT)
@@ -207,31 +253,26 @@ class NRF24L01:
         self.flush_tx()
         self.flush_rx()
 
-    # returns True if any data available to recv
     def any(self):
         return not bool(self.reg_read(FIFO_STATUS) & RX_EMPTY)
 
     def recv(self):
-        # get the data
         self.cs(0)
         self.spi.readinto(self.buf, R_RX_PAYLOAD)
         buf = self.spi.read(self.payload_size)
         self.cs(1)
-        # clear RX ready flag
         self.reg_write(STATUS, RX_DR)
-
         return buf
 
-    # blocking wait for tx complete
     def send(self, buf, timeout=500):
         self.send_start(buf)
         start = utime.ticks_ms()
         result = None
+
         while result is None and utime.ticks_diff(utime.ticks_ms(), start) < timeout:
-            result = self.send_done()  # 1 == success, 2 == fail
+            result = self.send_done()
 
         if result is None:
-            # timed out, cancel sending and power down the module
             self.flush_tx()
             self.reg_write(CONFIG, self.reg_read(CONFIG) & ~PWR_UP)
             raise OSError("timed out")
@@ -239,63 +280,54 @@ class NRF24L01:
         if result == 2:
             raise OSError("send failed")
 
-    # non-blocking tx
     def send_start(self, buf):
-        # power up
         self.reg_write(CONFIG, (self.reg_read(CONFIG) | PWR_UP) & ~PRIM_RX)
-        utime.sleep_us(1500)  # needs to be 1.5ms
-        # send the data
+        utime.sleep_us(1500)
+
         self.cs(0)
         self.spi.readinto(self.buf, W_TX_PAYLOAD)
         self.spi.write(buf)
         if len(buf) < self.payload_size:
-            self.spi.write(b"\x00" * (self.payload_size - len(buf)))  # pad out data
+            self.spi.write(b"\x00" * (self.payload_size - len(buf)))
         self.cs(1)
 
-        # enable the chip so it can send the data
         self.ce(1)
-        utime.sleep_us(15)  # needs to be >10us
+        utime.sleep_us(15)
         self.ce(0)
 
-    # returns None if send still in progress, 1 for success, 2 for fail
     def send_done(self):
         status = self.read_status()
         if not (status & (TX_DS | MAX_RT)):
-            return None  # tx not finished
+            return None
 
-        # either finished or failed: get and clear status flags, power down
         status = self.reg_write(STATUS, RX_DR | TX_DS | MAX_RT)
         self.reg_write(CONFIG, self.reg_read(CONFIG) & ~PWR_UP)
 
         if status & TX_DS:
             return 1
+        return 2
 
-        return 0
-
-
+    # ------------------------------------------------------------
+    # Constant carrier mode
+    # ------------------------------------------------------------
     def enter_const_carrier(self, channel=None, power=POWER_3):
-        # Optional: change channel
         if channel is not None:
             self.set_channel(channel)
 
-        # Power up in TX mode (PRIM_RX = 0)
         config = self.reg_read(CONFIG)
         config |= PWR_UP
         config &= ~PRIM_RX
         self.reg_write(CONFIG, config)
-        utime.sleep_ms(2)  # >1.5 ms
+        utime.sleep_ms(2)
 
-        # Set RF_SETUP: keep speed bits, set power + CW + PLL_LOCK
         setup = self.reg_read(RF_SETUP)
-        setup &= 0b00110001  # keep only speed + reserved bits
+        setup &= 0b00110001
         setup |= power | CONT_WAVE | PLL_LOCK
         self.reg_write(RF_SETUP, setup)
 
-        # CE high to start constant carrier
         self.ce(1)
 
     def leave_const_carrier(self):
-        # CE low, clear CW/PLL bits, optionally power down
         self.ce(0)
         setup = self.reg_read(RF_SETUP)
         setup &= ~(CONT_WAVE | PLL_LOCK)
@@ -305,14 +337,14 @@ class NRF24L01:
         config &= ~PWR_UP
         self.reg_write(CONFIG, config)
 
-    
-    def disableAutoAck( self ):
+    # ------------------------------------------------------------
+    # Convenience
+    # ------------------------------------------------------------
+    def disableAutoAck(self):
         EN_AA = const(0x01)
         self.reg_write(EN_AA, 0x00)
 
-
-    def setNoRetries( self ):
+    def setNoRetries(self):
         self.reg_write(SETUP_RETR, 0)
-        
 
 
