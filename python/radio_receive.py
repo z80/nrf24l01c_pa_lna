@@ -1,13 +1,12 @@
 from pyb import Pin
-from tests import get_nrf
+from radio import get_nrf
 import utime
 
 def rx_loop():
     led1 = Pin('A15', Pin.OUT)
     led2 = Pin('C10', Pin.OUT)
 
-    nrf, cs, ce = get_nrf()
-    radio = nrf
+    radio = get_nrf()
 
     addr = b"ABCDE"
     radio.open_rx_pipe(0, addr)

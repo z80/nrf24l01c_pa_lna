@@ -1,1 +1,1 @@
-..\..\micropython\.venv\scripts\activate
+..\..\cuckoo.git\.venv\scripts\activate

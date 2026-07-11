@@ -1,5 +1,5 @@
 
-from transmit import tx_loop
+from radio_transmit import tx_loop
 
 tx_loop()
 
