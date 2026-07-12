@@ -227,7 +227,7 @@ class TransportNode:
             self._pending_cmds[key] = buf
         buf.append(payload)
 
-        if flags & 0x01 #LAST_PACKET:
+        if flags & 0x01: # LAST_PACKET
             full = b"".join(buf)
             del self._pending_cmds[key]
             cmd = ujson.loads(full)
