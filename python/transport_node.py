@@ -192,6 +192,19 @@ class TransportNode:
         seq      = (pkt[4] << 8) | pkt[5]
         flags    = pkt[6]
         payload  = pkt[7:]
+        
+        # Filter out garbage packets.
+        if msg_type not in (ENUM_HELLO, ENUM_ASSIGN, MASTER_HELLO, CMD, STREAM):
+            return
+        if msg_type in (CMD, STREAM) and src_id == 0:
+            # unassigned nodes cannot send multi-packet commands
+            return
+        if msg_id == 0 and seq != 0:
+            return
+        if flags & ~0x01:
+            return
+        if len(payload) != 25:
+            return
 
         if msg_type == ENUM_HELLO:
             await self._handle_enum_hello(payload)
