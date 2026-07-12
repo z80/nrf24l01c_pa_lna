@@ -194,7 +194,7 @@ class TransportNode:
         payload  = pkt[7:]
 
         if msg_type == ENUM_HELLO:
-            await self._handle_enum_hello(src_id, payload)
+            await self._handle_enum_hello(payload)
         elif msg_type == ENUM_ASSIGN:
             await self._handle_enum_assign(payload)
         elif msg_type == MASTER_HELLO:
@@ -308,17 +308,16 @@ class TransportNode:
             await self._master_periodic()
 
     def _send_enum_hello(self, payload):
-        hdr = bytes([ENUM_HELLO, self.node_id or 0, 0, 0, 0, 0, 0])
-        self.radio.send(hdr + payload)
+        uuid_bytes = bytes.fromhex(self.uuid)
+        hdr = bytes([ENUM_HELLO, 0, 0, 0, 0, 0, 0])
+        self.radio.send(hdr + uuid_bytes)
 
-    async def _handle_enum_hello(self, src_id, payload):
+    async def _handle_enum_hello(self, payload):
         if not self._is_master():
             return
-        try:
-            data = ujson.loads(payload)
-            uuid = data["uuid"]
-        except ValueError:
-            return
+
+        uuid_bytes = payload[:16]
+        uuid = uuid_bytes.hex()
 
         rec = self.registry.get(uuid)
         if rec is None:
