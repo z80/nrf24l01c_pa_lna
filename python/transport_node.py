@@ -53,6 +53,10 @@ class TransportNode:
         self._pending_cmds = {}   # (src_id, msg_id) -> [chunks]
         self._streams = {}        # (src_id, stream_id) -> stream state
         self._awaiting_replies = {}   # msg_id -> Future
+        
+        # Need to inform master that it's shown up.
+        # Master should assign it a node_id and acknowledge.
+        self._master_acknowledged = False
 
         # Identity and registry
         self._load_identity()
@@ -293,9 +297,12 @@ class TransportNode:
     async def _run_periodic_tasks(self):
         now = utime.ticks_ms()
 
-        if self.role == "slave" and self.node_id is None:
-            payload = ujson.dumps({"uuid": self.uuid}).encode()
-            self._send_enum_hello(payload)
+        # Slave behavior
+        if self.role == "slave":
+            # Always announce until master acknowledges
+            if not self._master_acknowledged:
+                payload = ujson.dumps({"uuid": self.uuid}).encode()
+                self._send_enum_hello(payload)
 
         if self._is_master():
             await self._master_periodic()
@@ -341,6 +348,7 @@ class TransportNode:
         self.rx_addr = data["rx_addr"]
         self.master_uuid = data["master_uuid"]
         self._save_identity()
+        self._master_acknowledged = True
         # here you’d reconfigure RX pipe to self.rx_addr
 
     async def _master_periodic(self):
