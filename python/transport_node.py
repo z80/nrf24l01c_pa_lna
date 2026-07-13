@@ -56,6 +56,7 @@ class TransportNode:
         self._pending_cmds = {}   # (src_id, msg_id) -> [chunks]
         self._streams = {}        # (src_id, stream_id) -> stream state
         self._awaiting_replies = {}   # msg_id -> Future
+        self._last_msg_id = 0
         
         # Need to inform master that it's shown up.
         # Master should assign it a node_id and acknowledge.
@@ -564,4 +565,9 @@ class TransportNode:
                 full = b"".join(self._pending_cmds[("reply", msg_id)])
                 del self._pending_cmds[("reply", msg_id)]
                 return ujson.loads(full)
-
+    
+    def _next_msg_id( self ):
+        self._last_msg_id += 1
+        if self._last_msg_id > 255:
+            self._last_msg_id = 0
+        return self._last_msg_id
