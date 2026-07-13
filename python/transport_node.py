@@ -266,15 +266,19 @@ class TransportNode:
         if flags & 0x01:  # LAST_PACKET
             full = b"".join(buf)
             del self._pending_cmds[key]
+            
+            # Strip hardware zero-padding before parsing
+            clean_json = full.rstrip(b'\x00')
 
-            if self.debug:
-                print("[CMD] Full command assembled:", full)
+            if self.debug:
+                print("[CMD] Full command assembled:", clean_json)
+
 
             try:
-                cmd = ujson.loads(full)
+                cmd = ujson.loads(clean_json)
             except ValueError:
                 if self.debug:
-                    print("[CMD] JSON decode failed")
+                    print("[CMD] JSON decode failed on:", clean_json)
                 return
 
             if self.debug:
