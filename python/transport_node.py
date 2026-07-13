@@ -30,10 +30,13 @@ MASTER_CHANGE = const(6)
 # Byte 6: flags (bit0 = LAST_PACKET)
 # Byte 7+: payload (<= 25 bytes for 32-byte radio payload)
 
+HELLO_INTERVAL_MS = 5000
+ADDRESS = b"ABCDE"
 
 class TransportNode:
-    def __init__(self, role="slave"):
+    def __init__(self, role="slave", debug=True):
         self.role = role  # "master_candidate" or "slave" or "master"
+        self.debug = debug
 
         # Event ring buffer
         self._event_buf_len = 32
@@ -57,16 +60,22 @@ class TransportNode:
         # Need to inform master that it's shown up.
         # Master should assign it a node_id and acknowledge.
         self._master_acknowledged = False
+        # Last time hello has been sent
+        self._last_enum_hello = 0
 
         # Identity and registry
         self._load_identity()
         if self._is_master():
             self._load_registry()
+            self.node_id = 0
+
+        else:
+            self.node_id = None
 
         # Start listening on some default RX pipe/address
         # (you'll want to set a real address here)
-        addr = b"ABCDE"
-        self.radio.open_rx_pipe(0, addr)
+        self.radio.open_rx_pipe(0, ADDRESS)
+        self.radio.open_tx_pipe(ADDRESS)
         self.radio.start_listening()
 
     # ---------- ring buffer ----------
@@ -104,24 +113,15 @@ class TransportNode:
             with open('identity.json') as f:
                 data = ujson.loads(f.read())
             self.uuid = data["uuid"]
-            self.node_id = data.get("node_id", None)
-            self.rx_addr = data.get("rx_addr", None)
-            self.master_uuid = data.get("master_uuid", None)
         except OSError:
             import os
             raw = os.urandom(16)
             self.uuid = raw.hex()
-            self.node_id = None
-            self.rx_addr = None
-            self.master_uuid = None
             self._save_identity()
 
     def _save_identity(self):
         data = {
             "uuid": self.uuid,
-            "node_id": self.node_id,
-            "rx_addr": self.rx_addr,
-            "master_uuid": self.master_uuid,
         }
         with open('identity.json', 'w') as f:
             f.write(ujson.dumps(data))
@@ -146,38 +146,54 @@ class TransportNode:
 
     def promote_to_master(self):
         self.role = "master"
-        self.master_uuid = self.uuid
         self._save_identity()
         self._load_registry()
 
-    def demote_to_slave(self, master_uuid):
+    def demote_to_slave(self):
         self.role = "slave"
-        self.master_uuid = master_uuid
         self._save_identity()
 
     # ---------- main async loop ----------
 
     async def process(self):
         while True:
-            # handle pending events
+            # Handle pending events
             while True:
                 event = self._pop_event()
                 if event is None:
                     break
 
+                if self.debug:
+                    print("[process] Event:", 
+                          "RX" if event == EVENT_RX else
+                          "TX_DONE" if event == EVENT_TX_DONE else
+                          "TX_FAIL" if event == EVENT_TX_FAIL else
+                          event)
+
                 if event == EVENT_RX:
                     pkt = self.radio.recv()
+                    if self.debug:
+                        print("[RX] Raw packet:", pkt)
                     await self._handle_rx_packet(pkt)
 
                 elif event == EVENT_TX_DONE:
+                    if self.debug:
+                        print("[TX] TX_DONE")
                     await self._handle_tx_done()
 
                 elif event == EVENT_TX_FAIL:
+                    if self.debug:
+                        print("[TX] TX_FAIL")
                     await self._handle_tx_fail()
 
-            # periodic tasks
+            # Periodic tasks
+            if self.debug:
+                print("[process] Running periodic tasks")
             await self._run_periodic_tasks()
-            await uasyncio.sleep_ms(0)
+
+            # Yield to scheduler
+            # debug slow-motion mode
+            await uasyncio.sleep_ms(500 if self.debug else 0)
 
     # ---------- RX packet parsing ----------
 
@@ -192,6 +208,15 @@ class TransportNode:
         seq      = (pkt[4] << 8) | pkt[5]
         flags    = pkt[6]
         payload  = pkt[7:]
+
+        if self.debug:
+            print("[RX] type:", msg_type,
+                  "src:", src_id,
+                  "dst:", dst_id,
+                  "msg_id:", msg_id,
+                  "seq:", seq,
+                  "flags:", flags,
+                  "payload:", payload)
         
         # Filter out garbage packets.
         if msg_type not in (ENUM_HELLO, ENUM_ASSIGN, MASTER_HELLO, CMD, STREAM):
@@ -220,28 +245,39 @@ class TransportNode:
     # ---------- commands ----------
 
     async def _handle_cmd_chunk(self, src_id, msg_id, seq, flags, payload):
+        if self.debug:
+            print("[CMD] Chunk from src", src_id,
+                  "msg_id", msg_id,
+                  "seq", seq,
+                  "flags", flags,
+                  "payload", payload)
+
         key = (src_id, msg_id)
         buf = self._pending_cmds.get(key)
         if buf is None:
+            if self.debug:
+                print("[CMD] New command buffer for", key)
             buf = []
             self._pending_cmds[key] = buf
+
         buf.append(payload)
 
-        if flags & 0x01: # LAST_PACKET
+        if flags & 0x01:  # LAST_PACKET
             full = b"".join(buf)
             del self._pending_cmds[key]
-            cmd = ujson.loads(full)
 
-            # Is this a reply to a request?
-            fut = self._awaiting_replies.get(msg_id)
-            if fut is not None:
-                fut.set_result(cmd)
-                del self._awaiting_replies[msg_id]
+            if self.debug:
+                print("[CMD] Full command assembled:", full)
+
+            try:
+                cmd = ujson.loads(full)
+            except ValueError:
+                if self.debug:
+                    print("[CMD] JSON decode failed")
                 return
 
-            # Otherwise it's a normal command
-            if await self._on_command(src_id, cmd):
-                return
+            if self.debug:
+                print("[CMD] Dispatching command:", cmd)
 
             await self.on_command(src_id, cmd)
 
@@ -263,15 +299,6 @@ class TransportNode:
             else:
                 await self._send_cmd_reply(src_id, {"error": "index_out_of_range"})
 
-        elif cmd.get("cmd") == "get_rx_addr":
-            node_id = cmd.get("node_id")
-            # find record by node_id
-            for rec in self.registry.values():
-                if rec["node_id"] == node_id:
-                    await self._send_cmd_reply(src_id, {"rx_addr": rec["rx_addr"]})
-                    return
-            await self._send_cmd_reply(src_id, {"error": "node_not_found"})
-
         else:
             self.on_command( src_id, cmd )
 
@@ -282,19 +309,31 @@ class TransportNode:
     # ---------- streams ----------
 
     async def _handle_stream_chunk(self, src_id, stream_id, seq, flags, payload):
+        if self.debug:
+            print("[STREAM] Chunk src", src_id,
+                  "stream", stream_id,
+                  "seq", seq,
+                  "flags", flags,
+                  "payload", payload)
+
         key = (src_id, stream_id)
         stream = self._streams.get(key)
         if stream is None:
+            if self.debug:
+                print("[STREAM] Opening new stream", key)
             stream = {"open": True}
             self._streams[key] = stream
             await self.on_pipe_opened(stream_id, src_id)
 
         await self.on_pipe_data(stream_id, src_id, payload)
 
-        if flags & 0x01:  # LAST_PACKET for stream close
+        if flags & 0x01:
+            if self.debug:
+                print("[STREAM] Closing stream", key)
             stream["open"] = False
             await self.on_pipe_closed(stream_id, src_id)
             del self._streams[key]
+        
 
     async def on_pipe_opened(self, pipe_id, src_id):
         pass
@@ -308,22 +347,47 @@ class TransportNode:
     # ---------- periodic tasks ----------
 
     async def _run_periodic_tasks(self):
+        if self.debug:
+            print("[periodic] role:", self.role,
+                  "node_id:", self.node_id)
+
         now = utime.ticks_ms()
 
-        # Slave behavior
-        if self.role == "slave":
-            # Always announce until master acknowledges
-            if not self._master_acknowledged:
-                payload = ujson.dumps({"uuid": self.uuid}).encode()
-                self._send_enum_hello(payload)
-
         if self._is_master():
+            if self.debug:
+                print("[periodic] Master periodic tasks")
             await self._master_periodic()
 
-    def _send_enum_hello(self, payload):
+        else:
+            if not self._master_acknowledged:
+                if utime.ticks_diff(now, self._last_enum_hello) > HELLO_INTERVAL_MS:
+                    if self.debug:
+                        print("[periodic] sending ENUM_HELLO")
+                    self._send_enum_hello()
+                    self._last_enum_hello = now
+
+
+    def _safe_send(self, buf):
+        # Leave RX mode
+        self.radio.stop_listening()
+        try:
+            # Blocking send: waits for TX_DS or MAX_RT
+            self.radio.send(buf)
+        finally:
+            # Always return to RX mode
+            self.radio.start_listening()
+
+
+    def _send_enum_hello(self):
         uuid_bytes = bytes.fromhex(self.uuid)
         hdr = bytes([ENUM_HELLO, 0, 0, 0, 0, 0, 0])
-        self.radio.send(hdr + uuid_bytes)
+        pkt = hdr + uuid_bytes
+
+        try:
+            self._safe_send(pkt)
+        except Exception as e:
+            if self.debug:
+                print("[ENUM_HELLO] send failed:", e)
 
     async def _handle_enum_hello(self, payload):
         if not self._is_master():
@@ -335,8 +399,7 @@ class TransportNode:
         rec = self.registry.get(uuid)
         if rec is None:
             new_id = self._allocate_node_id()
-            rx_addr = self._allocate_rx_addr()
-            rec = {"uuid": uuid, "node_id": new_id, "rx_addr": rx_addr, "status": "online"}
+            rec = {"uuid": uuid, "node_id": new_id, "status": "online"}
             self._append_registry_record(rec)
         else:
             rec["status"] = "online"
@@ -344,12 +407,10 @@ class TransportNode:
         assign = {
             "uuid": uuid,
             "node_id": rec["node_id"],
-            "rx_addr": rec["rx_addr"],
-            "master_uuid": self.uuid,
         }
         payload_out = ujson.dumps(assign).encode()
         hdr = bytes([ENUM_ASSIGN, 0, 0, 0, 0, 0, 0])
-        self.radio.send(hdr + payload_out)
+        self._safe_send(hdr + payload_out)
 
     async def _handle_enum_assign(self, payload):
         try:
@@ -357,8 +418,6 @@ class TransportNode:
         except ValueError:
             return
         self.node_id = data["node_id"]
-        self.rx_addr = data["rx_addr"]
-        self.master_uuid = data["master_uuid"]
         self._save_identity()
         self._master_acknowledged = True
         # here you’d reconfigure RX pipe to self.rx_addr
@@ -372,10 +431,6 @@ class TransportNode:
         if not self.registry:
             return 1
         return max(rec["node_id"] for rec in self.registry.values()) + 1
-
-    def _allocate_rx_addr(self):
-        # placeholder: you’ll want a real scheme here
-        return b"ABCDE"
 
     # ---------- TX events ----------
 
@@ -411,21 +466,13 @@ class TransportNode:
         return reply
 
     async def send_command(self, node_index, command_array):
-        # Step 1: ask master for RX address of target node
-        req = {"cmd": "get_rx_addr", "node_id": node_index}
-        reply = await self._send_cmd_to_master(req)
-
-        rx_addr = reply.get("rx_addr")
-        if not rx_addr:
-            return False
-
         # Step 2: send actual command to target node
         payload = ujson.dumps(command_array).encode()
-        await self._send_cmd_to_node(node_index, rx_addr, payload)
+        await self._send_cmd_to_node(node_index, payload)
         return True    
 
 
-    async def send_command_and_wait_reply(self, node_id, command_array):
+    async def send_command_and_wait_reply(self, node_id, command_array, timeout_ms=2000):
         payload = ujson.dumps(command_array).encode()
         msg_id = self._next_msg_id()
 
@@ -437,8 +484,16 @@ class TransportNode:
                                          msg_id=msg_id,
                                          payload=payload)
 
-        return await fut
+        # Manual timeout
+        start = utime.ticks_ms()
+        while not fut.done():
+            await uasyncio.sleep_ms(10)
+            if utime.ticks_diff(utime.ticks_ms(), start) > timeout_ms:
+                del self._awaiting_replies[msg_id]
+                self._pending_cmds.pop((self.node_id, msg_id), None)
+                raise TimeoutError("Node {} did not reply".format(node_id))
 
+        return fut.result()
 
     async def open_pipe(self, node_index):
         # send CMD "open_stream", get stream_id
@@ -467,11 +522,8 @@ class TransportNode:
         await self._send_packet_sequence(dst_id=dst_id, msg_type=CMD, msg_id=msg_id, payload=payload)
 
 
-    async def _send_cmd_to_node(self, node_id, rx_addr, payload):
+    async def _send_cmd_to_node(self, node_id, payload):
         msg_id = self._next_msg_id()
-
-        # temporarily set TX address
-        self.radio.set_tx_address(rx_addr)
 
         await self._send_packet_sequence(dst_id=node_id, msg_type=CMD, msg_id=msg_id, payload=payload)
 
@@ -479,25 +531,29 @@ class TransportNode:
     async def _send_packet_sequence(self, dst_id, msg_type, msg_id, payload):
         CHUNK = 25
         seq = 0
+        
+        self.radio.stop_listening()
+        try:
+            for i in range(0, len(payload), CHUNK):
+                chunk = payload[i:i+CHUNK]
+                last = 1 if (i + CHUNK >= len(payload)) else 0
 
-        for i in range(0, len(payload), CHUNK):
-            chunk = payload[i:i+CHUNK]
-            last = 1 if (i + CHUNK >= len(payload)) else 0
+                hdr = bytes([
+                    msg_type,
+                    self.node_id or 0,
+                    dst_id,
+                    msg_id,
+                    (seq >> 8) & 0xFF,
+                    seq & 0xFF,
+                    last
+                ])
 
-            hdr = bytes([
-                msg_type,
-                self.node_id or 0,
-                dst_id,
-                msg_id,
-                (seq >> 8) & 0xFF,
-                seq & 0xFF,
-                last
-            ])
+                self.radio.send(hdr + chunk)
+                seq += 1
 
-            self.radio.send(hdr + chunk)
-            seq += 1
-
-            await uasyncio.sleep_ms(2)
+                await uasyncio.sleep_ms(2)
+        finally:
+            self.radio.start_listening()
 
     async def _wait_for_cmd_reply(self, msg_id):
         # your existing command reassembly already stores replies
