@@ -228,7 +228,7 @@ class TransportNode:
             return
         if flags & ~0x01:
             return
-        if len(payload) != 25:
+        if len(payload) > 25:
             return
 
         if msg_type == ENUM_HELLO:
