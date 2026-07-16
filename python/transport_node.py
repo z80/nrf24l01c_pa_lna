@@ -20,15 +20,20 @@ ENUM_ASSIGN   = const(4)
 MASTER_HELLO  = const(5)
 MASTER_CHANGE = const(6)
 
+
+HEADER_SIZE = const(5)
+LAST_PACKET = const(0x80)
+PACKET_SIZE = const(27)
+
+
+UUID_SIZE = 8
 # Header layout:
 # Byte 0: msg_type
 # Byte 1: src_id
 # Byte 2: dst_id
-# Byte 3: msg_id
-# Byte 4: seq_hi
-# Byte 5: seq_lo
-# Byte 6: flags (bit0 = LAST_PACKET)
-# Byte 7+: payload (<= 25 bytes for 32-byte radio payload)
+# Byte 3: seq_lo
+# Byte 4: flags (bit0 = LAST_PACKET)
+# Byte 5+: payload (<= 27 bytes for 32-byte radio payload)
 
 HELLO_INTERVAL_MS = 5000
 ADDRESS = b"ABCDE"
@@ -116,11 +121,18 @@ class TransportNode:
             self.uuid = data["uuid"]
         except OSError:
             import os
-            raw = os.urandom(16)
+            raw = os.urandom(UUID_SIZE)
             self.uuid = raw.hex()
             self._save_identity()
 
     def _save_identity(self):
+        try:
+            with open('identity.json') as f:
+                data = ujson.loads(f.read())
+            existing_uuid = data["uuid"]
+            if existing_uuid == self.uuid:
+                return
+
         data = {
             "uuid": self.uuid,
         }
@@ -206,9 +218,12 @@ class TransportNode:
         src_id   = pkt[1]
         dst_id   = pkt[2]
         msg_id   = pkt[3]
-        seq      = (pkt[4] << 8) | pkt[5]
-        flags    = pkt[6]
-        payload  = pkt[7:]
+        flags    = pkt[4]
+
+        last_packet = LAST_PACKET & flags
+        packet_size = LAST_PACKET ^ flags
+        payload  = pkt[HEADER_SIZE:(HEADER_SIZE+packet_size)]
+
 
         if self.debug:
             print("[RX] type:", msg_type,
@@ -227,9 +242,7 @@ class TransportNode:
             return
         if msg_id == 0 and seq != 0:
             return
-        if flags & ~0x01:
-            return
-        if len(payload) > 25:
+        if len(packet_size) > PACKET_SIZE:
             return
 
         if msg_type == ENUM_HELLO:
@@ -398,7 +411,10 @@ class TransportNode:
         if not self._is_master():
             return
 
-        uuid_bytes = payload[:16]
+        # Here it also should be a special single-packet transmit.
+        # For example, combine uuid bytes with the assigned node_id
+
+        uuid_bytes = payload[:UUID_SIZE]
         uuid = uuid_bytes.hex()
 
         rec = self.registry.get(uuid)
@@ -409,21 +425,22 @@ class TransportNode:
         else:
             rec["status"] = "online"
 
-        assign = {
-            "uuid": uuid,
-            "node_id": rec["node_id"],
-        }
-        payload_out = ujson.dumps(assign).encode()
-        hdr = bytes([ENUM_ASSIGN, 0, 0, 0, 0, 0, 0])
+        payload_out = uuid_bytes + bytes( [new_id] )
+        payload_size = len(payload_out)
+        last = LAST_PACKET + payload_size
+        hdr = bytes([ENUM_ASSIGN, 0, 0, 0, last])
         self._safe_send(hdr + payload_out)
 
     async def _handle_enum_assign(self, payload):
-        try:
-            data = ujson.loads(payload)
-        except ValueError:
+        uuid_bytes = payload[:UUID_SIZE]
+        uuid       = uuid_bytes.hex()
+        if uuid != self.uuid:
             return
-        self.node_id = data["node_id"]
-        self._save_identity()
+
+        node_id = payload[UUID_SIZE]
+        print( "assigning own node_id", node_id )
+        self.node_id = node_id
+
         self._master_acknowledged = True
         # here you’d reconfigure RX pipe to self.rx_addr
 
@@ -435,7 +452,10 @@ class TransportNode:
         # simple example: max existing + 1
         if not self.registry:
             return 1
-        return max(rec["node_id"] for rec in self.registry.values()) + 1
+
+        ret = max(rec["node_id"] for rec in self.registry.values()) + 1
+        print( "allocating node_id", ret )
+        return ret
 
     # ---------- TX events ----------
 
@@ -534,27 +554,26 @@ class TransportNode:
 
 
     async def _send_packet_sequence(self, dst_id, msg_type, msg_id, payload):
-        CHUNK = 25
-        seq = 0
+        CHUNK = PACKET_SIZE
         
         self.radio.stop_listening()
         try:
             for i in range(0, len(payload), CHUNK):
                 chunk = payload[i:i+CHUNK]
-                last = 1 if (i + CHUNK >= len(payload)) else 0
+                last = LAST_PACKET if (i + CHUNK >= len(payload)) else 0
+
+                packet_size = len(chunk)
+                last += packet_size
 
                 hdr = bytes([
                     msg_type,
                     self.node_id or 0,
                     dst_id,
                     msg_id,
-                    (seq >> 8) & 0xFF,
-                    seq & 0xFF,
                     last
                 ])
 
                 self.radio.send(hdr + chunk)
-                seq += 1
 
                 await uasyncio.sleep_ms(2)
         finally:
@@ -575,3 +594,5 @@ class TransportNode:
         if self._last_msg_id > 255:
             self._last_msg_id = 0
         return self._last_msg_id
+
+
