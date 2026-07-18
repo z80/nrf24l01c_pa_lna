@@ -456,55 +456,90 @@ class TransportNode:
     async def _send_packet_sequence(self, dst_id, msg_type, msg_id, payload,
                                     tx_address=None, mark_last=True,
                                     track_health=True):
+
         if not 0 < msg_type <= MESSAGE_TYPE_MASK:
             raise ValueError("invalid message type")
+
         if not isinstance(payload, (bytes, bytearray)):
             payload = bytes(payload)
+
         if tx_address is None:
             tx_address = self._endpoint_address(dst_id)
 
         await self._radio_lock.acquire()
         failed = False
+
         try:
+            #
+            # --- ENTER TX MODE ---
+            #
             self.radio.stop_listening()
             self.radio.open_tx_pipe(tx_address)
 
+            # ACK pipe must be enabled during PTX
+            self.radio.open_rx_pipe(0, tx_address)
+
             payload_length = len(payload)
             offset = 0
+
             while offset < payload_length or (payload_length == 0 and offset == 0):
                 chunk = payload[offset:offset + MAX_CHUNK_SIZE]
                 is_final_chunk = offset + len(chunk) >= payload_length
+
+                # Your existing flags logic
                 flags = len(chunk)
                 if mark_last and is_final_chunk:
                     flags |= LAST_PACKET
 
+                # Your existing header logic
                 header = bytes((
                     PROTOCOL_ID | msg_type,
-                    self.node_id if self.node_id is not None
-                    else UNASSIGNED_NODE_ID,
+                    self.node_id if self.node_id is not None else UNASSIGNED_NODE_ID,
                     dst_id,
                     msg_id,
                     flags,
                 ))
+
+                # Your existing CRC logic
                 crc = _crc8_update(0, self.network_id)
                 crc = _crc8_update(crc, header)
                 crc = _crc8_update(crc, chunk)
+
                 packet = header + chunk + bytes((crc,))
+
+                #
+                # --- SEND PACKET ---
+                #
                 await self._send_payload_locked(packet)
 
+                # Advance offset
                 if payload_length == 0:
                     offset = 1
                 else:
                     offset += len(chunk)
+
         except Exception:
             failed = True
             raise
+
         finally:
-            # Pipe 0 was enabled for PTX ACK reception. It must not remain a
-            # normal RX address after returning to PRX mode.
+            #
+            # --- EXIT TX MODE → RETURN TO RX MODE ---
+            #
+
+            # ACK pipe must NOT remain enabled in PRX mode
             self.radio.close_rx_pipe(0)
+
+            # Restore endpoint RX pipe (pipe 1)
+            if self.node_id is not None:
+                self.radio.open_rx_pipe(1, self._endpoint_address(self.node_id))
+
+            # Return to PRX mode
             self.radio.start_listening()
+
             self._radio_lock.release()
+
+            # Your existing health tracking
             if track_health and 0 <= dst_id <= MAX_SLAVE_NODE_ID:
                 if failed:
                     self._note_tx_failure(dst_id)
