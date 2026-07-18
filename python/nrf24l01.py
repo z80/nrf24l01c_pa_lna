@@ -217,6 +217,8 @@ class NRF24L01:
         self.reg_write_bytes(RX_ADDR_P0, address)
         self.reg_write_bytes(TX_ADDR, address)
         self.reg_write(RX_PW_P0, self.payload_size)
+        # Pipe 0 is used by the PTX to receive automatic acknowledgements.
+        self.reg_write(EN_RXADDR, self.reg_read(EN_RXADDR) | 0x01)
 
     def open_rx_pipe(self, pipe_id, address):
         assert len(address) == 5
@@ -233,6 +235,13 @@ class NRF24L01:
         self.reg_write(RX_PW_P0 + pipe_id, self.payload_size)
         self.reg_write(EN_RXADDR, self.reg_read(EN_RXADDR) | (1 << pipe_id))
 
+    def close_rx_pipe(self, pipe_id):
+        assert 0 <= pipe_id <= 5
+        self.reg_write(EN_RXADDR,
+                       self.reg_read(EN_RXADDR) & ~(1 << pipe_id))
+        if pipe_id == 0:
+            self.pipe0_read_addr = None
+
     # ------------------------------------------------------------
     # RX/TX
     # ------------------------------------------------------------
@@ -243,15 +252,11 @@ class NRF24L01:
         if self.pipe0_read_addr is not None:
             self.reg_write_bytes(RX_ADDR_P0, self.pipe0_read_addr)
 
-        self.flush_rx()
-        self.flush_tx()
         self.ce(1)
         utime.sleep_us(130)
 
     def stop_listening(self):
         self.ce(0)
-        self.flush_tx()
-        self.flush_rx()
 
     def any(self):
         return not bool(self.reg_read(FIFO_STATUS) & RX_EMPTY)
@@ -273,14 +278,17 @@ class NRF24L01:
             result = self.send_done()
 
         if result is None:
-            self.flush_tx()
-            self.reg_write(CONFIG, self.reg_read(CONFIG) & ~PWR_UP)
+            self.abort_send()
             raise OSError("timed out")
 
         if result == 2:
+            self.flush_tx()
             raise OSError("send failed")
 
     def send_start(self, buf):
+        if len(buf) > self.payload_size:
+            raise ValueError("payload exceeds configured payload size")
+
         self.reg_write(CONFIG, (self.reg_read(CONFIG) | PWR_UP) & ~PRIM_RX)
         utime.sleep_us(1500)
 
@@ -306,6 +314,13 @@ class NRF24L01:
         if status & TX_DS:
             return 1
         return 2
+
+    def abort_send(self):
+        """Abort an incomplete PTX transaction and leave the FIFO clean."""
+        self.ce(0)
+        self.flush_tx()
+        self.reg_write(STATUS, TX_DS | MAX_RT)
+        self.reg_write(CONFIG, self.reg_read(CONFIG) & ~PWR_UP)
 
     # ------------------------------------------------------------
     # Constant carrier mode
