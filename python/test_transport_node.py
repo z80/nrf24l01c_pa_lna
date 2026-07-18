@@ -225,6 +225,36 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
         reply = await master.send_command_and_wait_reply(0, {"value": 4})
         self.assertEqual(reply, {"source": 0, "value": 5})
 
+    async def test_remote_replies_wait_for_radio_retry_window(self):
+        self.write_identity("0011223344556677")
+        radio = FakeRadio()
+        node = self.transport.TransportNode(
+            is_master=True, debug=False, radio=radio
+        )
+        waits = []
+
+        async def sleep_ms(milliseconds):
+            waits.append(milliseconds)
+
+        async def on_command(src_id, command):
+            return {"ok": True}
+
+        self.transport.uasyncio.sleep_ms = sleep_ms
+        node.on_command = on_command
+
+        await node._handle_complete_message(
+            self.transport.CMD, 1, 7, b'{"cmd":1}'
+        )
+        await node._handle_complete_message(
+            self.transport.MGMT_REQUEST, 1, 8, b'{"op":1}'
+        )
+
+        self.assertEqual(
+            waits,
+            [self.transport._REPLY_TURNAROUND_MS] * 2,
+        )
+        self.assertEqual(len(radio.sent), 2)
+
     async def test_slave_management_request_uses_common_master_endpoint(self):
         self.write_identity("0011223344556677")
         master_radio = FakeRadio()

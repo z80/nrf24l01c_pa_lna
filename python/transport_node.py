@@ -60,6 +60,7 @@ BACKGROUND_QUIET_MS = const(100)
 REASSEMBLY_TIMEOUT_MS = const(2000)
 STREAM_TIMEOUT_MS = const(10000)
 REQUEST_TIMEOUT_MS = const(2000)
+_REPLY_TURNAROUND_MS = const(35)
 
 # Compact management operation values used inside JSON payloads.
 _OP_PING = const(0)
@@ -847,6 +848,8 @@ class TransportNode:
         if msg_type == CMD:
             result = await self.on_command(src_id, value)
             if result is not None:
+                # Wait out lost-ACK retries before switching RX to TX.
+                await uasyncio.sleep_ms(_REPLY_TURNAROUND_MS)
                 await self._send_json(src_id, CMD_REPLY, msg_id, result)
         elif msg_type == CMD_REPLY:
             self._fulfill_reply(src_id, msg_type, msg_id, value)
@@ -1003,6 +1006,7 @@ class TransportNode:
             reply = {"err": "master"}
 
         if reply is not None:
+            await uasyncio.sleep_ms(_REPLY_TURNAROUND_MS)
             await self._send_json(src_id, MGMT_REPLY, msg_id, reply)
 
     def _next_msg_id(self):
