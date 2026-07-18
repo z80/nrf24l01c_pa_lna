@@ -11,6 +11,7 @@ SETUP_RETR = const(0x04)
 RF_CH = const(0x05)
 RF_SETUP = const(0x06)
 STATUS = const(0x07)
+OBSERVE_TX = const(0x08)
 RX_ADDR_P0 = const(0x0A)
 TX_ADDR = const(0x10)
 RX_PW_P0 = const(0x11)
@@ -180,6 +181,10 @@ class NRF24L01:
         self.spi.readinto(self.buf, NOP)
         self.cs(1)
         return self.buf[0]
+
+    def read_observe_tx(self):
+        """Return PLOS_CNT in bits 7:4 and ARC_CNT in bits 3:0."""
+        return self.reg_read(OBSERVE_TX)
 
     def flush_rx(self):
         self.cs(0)

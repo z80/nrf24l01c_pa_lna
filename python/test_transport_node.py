@@ -66,6 +66,9 @@ class FakeRadio:
     def abort_send(self):
         self._tx_pending = False
 
+    def read_observe_tx(self):
+        return 0
+
 
 def import_transport_module():
     micropython = types.ModuleType("micropython")
@@ -268,6 +271,8 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
         receiver.on_command = on_command
         await sender.send_command(3, {"value": 7})
         unused_address, valid_packet = sender_radio.sent.pop(0)
+        self.assertNotIn(0, sender_radio.rx_pipes)
+        self.assertEqual(sender_radio.rx_pipes[1], sender._endpoint_address(0))
 
         self.assertEqual(
             valid_packet[0] & self.transport.PROTOCOL_ID_MASK,
@@ -289,6 +294,65 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(received, [])
         await receiver._handle_rx_packet(valid_packet)
         self.assertEqual(received, [(0, {"value": 7})])
+
+    async def test_periodic_service_waits_for_idle_transport(self):
+        self.write_identity("8899aabbccddeeff")
+        slave_radio = FakeRadio()
+        slave = self.transport.TransportNode(
+            role="slave", debug=False, radio=slave_radio
+        )
+        slave.node_id = 1
+        slave._master_acknowledged = True
+        slave._confirm_delay_ms = 1
+        slave._last_master_confirm = 0
+
+        ticks = sys.modules["utime"]
+        ticks.now = 1000
+        slave._last_radio_activity = 0
+        slave._awaiting_replies[7] = [0, self.transport.MGMT_REPLY, object()]
+        await slave._run_periodic_tasks()
+        self.assertEqual(slave_radio.sent, [])
+
+        slave._awaiting_replies.clear()
+        await slave._append_reassembly(
+            self.transport.CMD, 0, 9, b"{", False
+        )
+        ticks.now += 1000
+        slave._last_radio_activity = 0
+        await slave._run_periodic_tasks()
+        self.assertEqual(slave_radio.sent, [])
+
+        slave._clear_reassembly(0)
+        ticks.now += self.transport.BACKGROUND_QUIET_MS + 1
+        slave._last_radio_activity = 0
+        await slave._run_periodic_tasks()
+        self.assertEqual(len(slave_radio.sent), 1)
+        self.assertEqual(
+            slave_radio.sent[0][1][0] & self.transport.MESSAGE_TYPE_MASK,
+            self.transport.ENUM_CONFIRM,
+        )
+        self.assertGreaterEqual(
+            slave._confirm_delay_ms,
+            self.transport.SLAVE_CONFIRM_INTERVAL_MS,
+        )
+        self.assertLessEqual(
+            slave._confirm_delay_ms,
+            self.transport.SLAVE_CONFIRM_INTERVAL_MS
+            + self.transport.SLAVE_CONFIRM_JITTER_MS,
+        )
+
+        # A background sender must re-check idleness after waiting for the
+        # radio lock; otherwise it can act on a stale pre-lock decision.
+        slave_radio.sent.clear()
+        await slave._radio_lock.acquire()
+        background_task = asyncio.create_task(
+            slave._send_enum_confirm(background=True)
+        )
+        await asyncio.sleep(0)
+        slave._last_radio_activity = ticks.ticks_ms()
+        slave._radio_lock.release()
+        self.assertFalse(await background_task)
+        self.assertEqual(slave_radio.sent, [])
 
 
 if __name__ == "__main__":

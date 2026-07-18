@@ -52,7 +52,12 @@ RX_POLL_INTERVAL_MS = const(2)
 RADIO_SEND_TIMEOUT_MS = const(100)
 HELLO_INTERVAL_MS = const(2000)
 HELLO_JITTER_MS = const(1000)
-HEALTH_PROBE_INTERVAL_MS = const(5000)
+HEALTH_PROBE_INTERVAL_MS = const(7000)
+HEALTH_PROBE_JITTER_MS = const(3000)
+SLAVE_CONFIRM_INTERVAL_MS = const(20000)
+SLAVE_CONFIRM_JITTER_MS = const(5000)
+BACKGROUND_QUIET_MS = const(100)
+SERVICE_SUPPRESSION_LOG_MS = const(1000)
 REASSEMBLY_TIMEOUT_MS = const(2000)
 STREAM_TIMEOUT_MS = const(10000)
 REQUEST_TIMEOUT_MS = const(2000)
@@ -82,6 +87,10 @@ STREAM_LAST_SEEN = const(3)
 STREAM_RECORD_SIZE = const(7)
 
 _NO_REPLY = object()
+_MESSAGE_NAMES = (
+    "INVALID", "CMD", "CMD_REPLY", "STREAM", "MGMT_REQUEST",
+    "MGMT_REPLY", "ENUM_HELLO", "ENUM_ASSIGN", "ENUM_CONFIRM",
+)
 
 
 def _crc8_update(crc, values):
@@ -94,6 +103,12 @@ def _crc8_update(crc, values):
             else:
                 crc = (crc << 1) & 0xFF
     return crc
+
+
+def _message_name(msg_type):
+    if 0 <= msg_type < len(_MESSAGE_NAMES):
+        return _MESSAGE_NAMES[msg_type]
+    return "UNKNOWN"
 
 
 def _decode_network_id(network_id):
@@ -164,6 +179,11 @@ class TransportNode:
         self._last_enum_hello = now
         self._hello_delay_ms = self._next_hello_delay(initial=True)
         self._last_master_confirm = now
+        self._confirm_delay_ms = self._next_service_delay(
+            SLAVE_CONFIRM_INTERVAL_MS, SLAVE_CONFIRM_JITTER_MS
+        )
+        self._last_radio_activity = now
+        self._last_service_suppression_log = now
 
         # TX completion is polled asynchronously. No radio IRQ is installed.
         self.radio = radio if radio is not None else get_nrf(
@@ -433,7 +453,9 @@ class TransportNode:
         try:
             if not self.radio.any():
                 return None
-            return self.radio.recv()
+            packet = self.radio.recv()
+            self._last_radio_activity = utime.ticks_ms()
+            return packet
         finally:
             self._radio_lock.release()
 
@@ -445,8 +467,17 @@ class TransportNode:
             if result == 1:
                 return
             if result == 2:
-                self.radio.abort_send()
-                raise OSError("send failed")
+                try:
+                    observe = self.radio.read_observe_tx()
+                finally:
+                    self.radio.abort_send()
+
+                raise OSError(
+                    "send failed: MAX_RT ARC={} PLOS={}".format(
+                        observe & 0x0F,
+                        (observe >> 4) & 0x0F,
+                    )
+                )
             if utime.ticks_diff(utime.ticks_ms(), started) >= \
                     RADIO_SEND_TIMEOUT_MS:
                 self.radio.abort_send()
@@ -455,96 +486,105 @@ class TransportNode:
 
     async def _send_packet_sequence(self, dst_id, msg_type, msg_id, payload,
                                     tx_address=None, mark_last=True,
-                                    track_health=True):
-
+                                    track_health=True,
+                                    background_service=None):
         if not 0 < msg_type <= MESSAGE_TYPE_MASK:
             raise ValueError("invalid message type")
-
         if not isinstance(payload, (bytes, bytearray)):
             payload = bytes(payload)
-
         if tx_address is None:
             tx_address = self._endpoint_address(dst_id)
 
         await self._radio_lock.acquire()
-        failed = False
+        if background_service is not None and not \
+                self._background_service_allowed(
+                    utime.ticks_ms(), background_service
+                ):
+            self._radio_lock.release()
+            return False
 
+        failed = False
+        fragment_index = 0
+        payload_length = len(payload)
+        fragment_count = max(
+            1,
+            (payload_length + MAX_CHUNK_SIZE - 1) // MAX_CHUNK_SIZE,
+        )
         try:
-            #
-            # --- ENTER TX MODE ---
-            #
             self.radio.stop_listening()
             self.radio.open_tx_pipe(tx_address)
 
-            # ACK pipe must be enabled during PTX
-            self.radio.open_rx_pipe(0, tx_address)
-
-            payload_length = len(payload)
             offset = 0
-
             while offset < payload_length or (payload_length == 0 and offset == 0):
+                fragment_index += 1
                 chunk = payload[offset:offset + MAX_CHUNK_SIZE]
                 is_final_chunk = offset + len(chunk) >= payload_length
-
-                # Your existing flags logic
                 flags = len(chunk)
                 if mark_last and is_final_chunk:
                     flags |= LAST_PACKET
 
-                # Your existing header logic
                 header = bytes((
                     PROTOCOL_ID | msg_type,
-                    self.node_id if self.node_id is not None else UNASSIGNED_NODE_ID,
+                    self.node_id if self.node_id is not None
+                    else UNASSIGNED_NODE_ID,
                     dst_id,
                     msg_id,
                     flags,
                 ))
-
-                # Your existing CRC logic
                 crc = _crc8_update(0, self.network_id)
                 crc = _crc8_update(crc, header)
                 crc = _crc8_update(crc, chunk)
-
                 packet = header + chunk + bytes((crc,))
 
-                #
-                # --- SEND PACKET ---
-                #
+                if self.debug and fragment_index == 1:
+                    print(
+                        "[TX]", _message_name(msg_type),
+                        "src", header[1], "dst", dst_id,
+                        "msg", msg_id, "fragments", fragment_count,
+                        "bytes", payload_length,
+                        "address", tx_address.hex(),
+                    )
                 await self._send_payload_locked(packet)
+                if self.debug and fragment_count > 1:
+                    print(
+                        "[TX fragment]", fragment_index, "/", fragment_count,
+                        "length", len(chunk),
+                        "last", bool(flags & LAST_PACKET),
+                    )
 
-                # Advance offset
                 if payload_length == 0:
                     offset = 1
                 else:
                     offset += len(chunk)
-
-        except Exception:
+            if self.debug:
+                print(
+                    "[TX done]", _message_name(msg_type),
+                    "dst", dst_id, "msg", msg_id,
+                )
+        except Exception as error:
             failed = True
+            if self.debug:
+                print(
+                    "[TX failed]", _message_name(msg_type),
+                    "dst", dst_id, "msg", msg_id,
+                    "fragment", fragment_index, "/", fragment_count,
+                    "pending replies", len(self._awaiting_replies),
+                    "error", error,
+                )
             raise
-
         finally:
-            #
-            # --- EXIT TX MODE → RETURN TO RX MODE ---
-            #
-
-            # ACK pipe must NOT remain enabled in PRX mode
+            # open_tx_pipe() already configured and enabled pipe 0 for PTX ACK
+            # reception. Pipe 1 was never altered and needs no restoration.
             self.radio.close_rx_pipe(0)
-
-            # Restore endpoint RX pipe (pipe 1)
-            if self.node_id is not None:
-                self.radio.open_rx_pipe(1, self._endpoint_address(self.node_id))
-
-            # Return to PRX mode
             self.radio.start_listening()
-
+            self._last_radio_activity = utime.ticks_ms()
             self._radio_lock.release()
-
-            # Your existing health tracking
             if track_health and 0 <= dst_id <= MAX_SLAVE_NODE_ID:
                 if failed:
                     self._note_tx_failure(dst_id)
                 else:
                     self._note_node_seen(dst_id)
+        return True
 
     # ---------- main loop and periodic work ----------
 
@@ -587,34 +627,102 @@ class TransportNode:
             return
 
         if utime.ticks_diff(now, self._last_master_confirm) >= \
-                HEALTH_PROBE_INTERVAL_MS:
+                self._confirm_delay_ms:
+            if not self._background_service_allowed(now, "ENUM_CONFIRM"):
+                return
             try:
-                await self._send_enum_confirm()
+                sent = await self._send_enum_confirm(background=True)
+                if not sent:
+                    return
                 self._master_failures = 0
             except OSError:
                 self._master_failures += 1
                 if self._master_failures >= MAX_CONSECUTIVE_FAILURES:
                     await self._become_unassigned()
             self._last_master_confirm = now
+            self._confirm_delay_ms = self._next_service_delay(
+                SLAVE_CONFIRM_INTERVAL_MS, SLAVE_CONFIRM_JITTER_MS
+            )
 
     async def _master_periodic(self, now):
         # Probe at most one idle node per loop so periodic work stays bounded.
         for index in range(self._online_count):
             if utime.ticks_diff(now, self._online_last_seen(index)) < \
-                    HEALTH_PROBE_INTERVAL_MS:
+                    self._health_probe_delay(index):
                 continue
+            if not self._background_service_allowed(now, "HEALTH_PROBE"):
+                return
             start = self._online_start(index)
             node_id = self._online_records[start + ONLINE_NODE_ID]
             try:
-                await self._send_json(
+                sent = await self._send_json(
                     node_id,
                     MGMT_REQUEST,
                     0,
                     {"op": "ping", "reply": False},
+                    background_service="HEALTH_PROBE",
                 )
+                if not sent:
+                    return
             except OSError:
                 pass
             return
+
+    def _has_active_reassembly(self):
+        for slot in range(COMMAND_REASSEMBLY_SLOTS):
+            start = self._reasm_start(slot)
+            if self._reassembly[start + REASM_ACTIVE]:
+                return True
+        return False
+
+    def _has_active_streams(self):
+        for slot in range(MAX_OPEN_STREAMS):
+            start = self._stream_start(slot)
+            if self._incoming_streams[start + STREAM_ACTIVE] or \
+                    self._outgoing_streams[start + STREAM_ACTIVE]:
+                return True
+        return False
+
+    def _background_service_allowed(self, now, service_name):
+        has_pending = bool(self._awaiting_replies)
+        has_reassembly = self._has_active_reassembly()
+        has_streams = self._has_active_streams()
+        quiet_for = utime.ticks_diff(now, self._last_radio_activity)
+        allowed = not has_pending and not has_reassembly and \
+            not has_streams and quiet_for >= BACKGROUND_QUIET_MS
+
+        if not allowed and self.debug and utime.ticks_diff(
+                now, self._last_service_suppression_log
+        ) >= SERVICE_SUPPRESSION_LOG_MS:
+            print(
+                "[service delayed]", service_name,
+                "pending", len(self._awaiting_replies),
+                "reassembly", has_reassembly,
+                "streams", has_streams,
+                "quiet_ms", quiet_for,
+            )
+            self._last_service_suppression_log = now
+        return allowed
+
+    def _health_probe_delay(self, index):
+        start = self._online_start(index)
+        value = 0x5A
+        for offset in range(UUID_SIZE):
+            value = ((value * 33) ^ self._online_records[
+                start + ONLINE_UUID + offset
+            ]) & 0x7FFFFFFF
+        return HEALTH_PROBE_INTERVAL_MS + \
+            value % (HEALTH_PROBE_JITTER_MS + 1)
+
+    def _next_service_delay(self, base_ms, jitter_ms):
+        seed = getattr(self, "_service_seed", 0)
+        if seed == 0:
+            seed = 0x13579
+            for value in self._uuid_bytes:
+                seed = ((seed * 33) ^ value) & 0x7FFFFFFF
+        seed = (1103515245 * seed + 12345) & 0x7FFFFFFF
+        self._service_seed = seed
+        return base_ms + seed % (jitter_ms + 1)
 
     def _next_hello_delay(self, initial=False):
         # UUID-derived state prevents nodes powered together from remaining in
@@ -664,6 +772,13 @@ class TransportNode:
         expected_crc = _crc8_update(expected_crc, payload)
         if packet[crc_position] != expected_crc:
             return
+
+        if self.debug:
+            print(
+                "[RX]", _message_name(msg_type),
+                "src", src_id, "dst", dst_id, "msg", msg_id,
+                "length", payload_length, "last", last_packet,
+            )
 
         if msg_type == ENUM_HELLO:
             if self._is_master() and dst_id == MASTER_NODE_ID:
@@ -874,17 +989,21 @@ class TransportNode:
             # application confirmation does not invalidate the allocation.
             self._master_failures = 1
         self._last_master_confirm = utime.ticks_ms()
+        self._confirm_delay_ms = self._next_service_delay(
+            SLAVE_CONFIRM_INTERVAL_MS, SLAVE_CONFIRM_JITTER_MS
+        )
 
-    async def _send_enum_confirm(self):
+    async def _send_enum_confirm(self, background=False):
         if self.node_id is None:
-            return
+            return False
         payload = self._uuid_bytes + bytes((self.node_id,))
-        await self._send_packet_sequence(
+        return await self._send_packet_sequence(
             MASTER_NODE_ID,
             ENUM_CONFIRM,
             0,
             payload,
             track_health=False,
+            background_service="ENUM_CONFIRM" if background else None,
         )
 
     async def _handle_enum_confirm(self, src_id, payload):
@@ -919,12 +1038,13 @@ class TransportNode:
     # ---------- management and public command API ----------
 
     async def _send_json(self, dst_id, msg_type, msg_id, value,
-                         mark_last=True):
+                         mark_last=True, background_service=None):
         payload = ujson.dumps(value).encode()
         if msg_type != STREAM and len(payload) > MAX_COMMAND_SIZE:
             raise ValueError("encoded message exceeds MAX_COMMAND_SIZE")
-        await self._send_packet_sequence(
-            dst_id, msg_type, msg_id, payload, mark_last=mark_last
+        return await self._send_packet_sequence(
+            dst_id, msg_type, msg_id, payload, mark_last=mark_last,
+            background_service=background_service,
         )
 
     async def _handle_management_request(self, src_id, msg_id, request):
@@ -974,6 +1094,14 @@ class TransportNode:
             started = utime.ticks_ms()
             while pending[2] is _NO_REPLY:
                 if utime.ticks_diff(utime.ticks_ms(), started) >= timeout_ms:
+                    if self.debug:
+                        print(
+                            "[request timeout]",
+                            _message_name(request_type),
+                            "dst", dst_id, "msg", msg_id,
+                            "expected", _message_name(reply_type),
+                            "timeout_ms", timeout_ms,
+                        )
                     raise RuntimeError("request timed out")
                 await uasyncio.sleep_ms(5)
             return pending[2]
