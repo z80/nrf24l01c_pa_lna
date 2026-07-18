@@ -939,7 +939,7 @@ class TransportNode:
             started = utime.ticks_ms()
             while pending[2] is _NO_REPLY:
                 if utime.ticks_diff(utime.ticks_ms(), started) >= timeout_ms:
-                    raise TimeoutError("request timed out")
+                    raise RuntimeError("request timed out")
                 await uasyncio.sleep_ms(5)
             return pending[2]
         finally:
