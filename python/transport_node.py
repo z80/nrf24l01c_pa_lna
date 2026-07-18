@@ -57,40 +57,40 @@ HEALTH_PROBE_JITTER_MS = const(3000)
 SLAVE_CONFIRM_INTERVAL_MS = const(20000)
 SLAVE_CONFIRM_JITTER_MS = const(5000)
 BACKGROUND_QUIET_MS = const(100)
-SERVICE_SUPPRESSION_LOG_MS = const(1000)
 REASSEMBLY_TIMEOUT_MS = const(2000)
 STREAM_TIMEOUT_MS = const(10000)
 REQUEST_TIMEOUT_MS = const(2000)
 
+# Compact management operation values used inside JSON payloads.
+_OP_PING = const(0)
+_OP_GET_QTY = const(1)
+_OP_GET_INFO = const(2)
+
 # Packed online-node record: UUID, node id, failures, last-seen ticks.
-ONLINE_UUID = const(0)
-ONLINE_NODE_ID = const(8)
-ONLINE_FAILURES = const(9)
-ONLINE_LAST_SEEN = const(10)
-ONLINE_RECORD_SIZE = const(14)
+_ONLINE_UUID = const(0)
+_ONLINE_NODE_ID = const(8)
+_ONLINE_FAILURES = const(9)
+_ONLINE_LAST_SEEN = const(10)
+_ONLINE_RECORD_SIZE = const(14)
 
 # Packed command reassembly record.
-REASM_ACTIVE = const(0)
-REASM_TYPE = const(1)
-REASM_SRC = const(2)
-REASM_MSG_ID = const(3)
-REASM_LENGTH = const(4)
-REASM_LAST_SEEN = const(5)
-REASM_DATA = const(9)
-REASM_RECORD_SIZE = const(REASM_DATA + MAX_COMMAND_SIZE)
+_REASM_ACTIVE = const(0)
+_REASM_TYPE = const(1)
+_REASM_SRC = const(2)
+_REASM_MSG_ID = const(3)
+_REASM_LENGTH = const(4)
+_REASM_LAST_SEEN = const(5)
+_REASM_DATA = const(9)
+_REASM_RECORD_SIZE = const(_REASM_DATA + MAX_COMMAND_SIZE)
 
 # Packed stream records: active, source/destination, stream id, last seen.
-STREAM_ACTIVE = const(0)
-STREAM_NODE_ID = const(1)
-STREAM_ID = const(2)
-STREAM_LAST_SEEN = const(3)
-STREAM_RECORD_SIZE = const(7)
+_STREAM_ACTIVE = const(0)
+_STREAM_NODE_ID = const(1)
+_STREAM_ID = const(2)
+_STREAM_LAST_SEEN = const(3)
+_STREAM_RECORD_SIZE = const(7)
 
 _NO_REPLY = object()
-_MESSAGE_NAMES = (
-    "INVALID", "CMD", "CMD_REPLY", "STREAM", "MGMT_REQUEST",
-    "MGMT_REPLY", "ENUM_HELLO", "ENUM_ASSIGN", "ENUM_CONFIRM",
-)
 
 
 def _crc8_update(crc, values):
@@ -103,12 +103,6 @@ def _crc8_update(crc, values):
             else:
                 crc = (crc << 1) & 0xFF
     return crc
-
-
-def _message_name(msg_type):
-    if 0 <= msg_type < len(_MESSAGE_NAMES):
-        return _MESSAGE_NAMES[msg_type]
-    return "UNKNOWN"
 
 
 def _decode_network_id(network_id):
@@ -134,39 +128,36 @@ def _decode_network_id(network_id):
 
 
 class TransportNode:
-    def __init__(self, role="slave", debug=True,
+    def __init__(self, is_master=False, debug=True,
                  network_id=DEFAULT_NETWORK_ID, radio=None):
-        if role not in ("master", "slave"):
-            raise ValueError("role must be 'master' or 'slave'")
-
-        self.role = role
+        self.is_master = bool(is_master)
         self.debug = debug
         self.network_id = _decode_network_id(network_id)
 
         self._load_identity()
         self._uuid_bytes = bytes.fromhex(self.uuid)
 
-        self.node_id = MASTER_NODE_ID if self._is_master() else None
-        self._master_acknowledged = self._is_master()
+        self.node_id = MASTER_NODE_ID if self.is_master else None
+        self._master_acknowledged = self.is_master
         self._master_failures = 0
 
         # One preallocated buffer contains every currently online slave record.
         self._online_records = bytearray(
-            MAX_ONLINE_NODES * ONLINE_RECORD_SIZE
+            MAX_ONLINE_NODES * _ONLINE_RECORD_SIZE
         )
         self._online_count = 0
 
         # Two bounded command/reply reassembly records.
         self._reassembly = bytearray(
-            COMMAND_REASSEMBLY_SLOTS * REASM_RECORD_SIZE
+            COMMAND_REASSEMBLY_SLOTS * _REASM_RECORD_SIZE
         )
 
         # Incoming and outgoing stream metadata are also fixed-capacity.
         self._incoming_streams = bytearray(
-            MAX_OPEN_STREAMS * STREAM_RECORD_SIZE
+            MAX_OPEN_STREAMS * _STREAM_RECORD_SIZE
         )
         self._outgoing_streams = bytearray(
-            MAX_OPEN_STREAMS * STREAM_RECORD_SIZE
+            MAX_OPEN_STREAMS * _STREAM_RECORD_SIZE
         )
 
         # Only active local request waits are dynamic. Their number is bounded
@@ -183,7 +174,6 @@ class TransportNode:
             SLAVE_CONFIRM_INTERVAL_MS, SLAVE_CONFIRM_JITTER_MS
         )
         self._last_radio_activity = now
-        self._last_service_suppression_log = now
 
         # TX completion is polled asynchronously. No radio IRQ is installed.
         self.radio = radio if radio is not None else get_nrf(
@@ -196,7 +186,7 @@ class TransportNode:
         for pipe_id in range(6):
             self.radio.close_rx_pipe(pipe_id)
 
-        if self._is_master():
+        if self.is_master:
             # Pipe 1 owns the full base address. Pipe 2 inherits the network-id
             # suffix and differs only by its first byte.
             self.radio.open_rx_pipe(1, self._endpoint_address(MASTER_NODE_ID))
@@ -245,9 +235,6 @@ class TransportNode:
         with open("identity.json", "w") as identity_file:
             identity_file.write(ujson.dumps({"uuid": self.uuid}))
 
-    def _is_master(self):
-        return self.role == "master"
-
     def _endpoint_address(self, node_id):
         if not 0 <= node_id <= MAX_SLAVE_NODE_ID:
             raise ValueError("invalid endpoint node id")
@@ -271,41 +258,41 @@ class TransportNode:
     # ---------- packed online-node storage ----------
 
     def _online_start(self, index):
-        return index * ONLINE_RECORD_SIZE
+        return index * _ONLINE_RECORD_SIZE
 
     def _find_online_by_id(self, node_id):
         for index in range(self._online_count):
             start = self._online_start(index)
-            if self._online_records[start + ONLINE_NODE_ID] == node_id:
+            if self._online_records[start + _ONLINE_NODE_ID] == node_id:
                 return index
         return -1
 
     def _online_last_seen(self, index):
         start = self._online_start(index)
         return ustruct.unpack_from(
-            "<I", self._online_records, start + ONLINE_LAST_SEEN
+            "<I", self._online_records, start + _ONLINE_LAST_SEEN
         )[0]
 
     def _set_online_last_seen(self, index, value):
         start = self._online_start(index)
         ustruct.pack_into(
-            "<I", self._online_records, start + ONLINE_LAST_SEEN, value
+            "<I", self._online_records, start + _ONLINE_LAST_SEEN, value
         )
 
     def _copy_record(self, dst_index, src_index):
         dst = self._online_start(dst_index)
         src = self._online_start(src_index)
         if dst < src:
-            for offset in range(ONLINE_RECORD_SIZE):
+            for offset in range(_ONLINE_RECORD_SIZE):
                 self._online_records[dst + offset] = \
                     self._online_records[src + offset]
         else:
-            for offset in range(ONLINE_RECORD_SIZE - 1, -1, -1):
+            for offset in range(_ONLINE_RECORD_SIZE - 1, -1, -1):
                 self._online_records[dst + offset] = \
                     self._online_records[src + offset]
 
     def _mark_online(self, node_id, uuid_bytes):
-        if not self._is_master() or node_id == MASTER_NODE_ID:
+        if not self.is_master or node_id == MASTER_NODE_ID:
             return True
 
         now = utime.ticks_ms()
@@ -313,9 +300,9 @@ class TransportNode:
         if index >= 0:
             start = self._online_start(index)
             for offset in range(UUID_SIZE):
-                self._online_records[start + ONLINE_UUID + offset] = \
+                self._online_records[start + _ONLINE_UUID + offset] = \
                     uuid_bytes[offset]
-            self._online_records[start + ONLINE_FAILURES] = 0
+            self._online_records[start + _ONLINE_FAILURES] = 0
             self._set_online_last_seen(index, now)
             return True
 
@@ -325,7 +312,7 @@ class TransportNode:
         insert_at = self._online_count
         for current in range(self._online_count):
             start = self._online_start(current)
-            if self._online_records[start + ONLINE_NODE_ID] > node_id:
+            if self._online_records[start + _ONLINE_NODE_ID] > node_id:
                 insert_at = current
                 break
 
@@ -333,13 +320,13 @@ class TransportNode:
             self._copy_record(current, current - 1)
 
         start = self._online_start(insert_at)
-        for offset in range(ONLINE_RECORD_SIZE):
+        for offset in range(_ONLINE_RECORD_SIZE):
             self._online_records[start + offset] = 0
         for offset in range(UUID_SIZE):
-            self._online_records[start + ONLINE_UUID + offset] = \
+            self._online_records[start + _ONLINE_UUID + offset] = \
                 uuid_bytes[offset]
-        self._online_records[start + ONLINE_NODE_ID] = node_id
-        self._online_records[start + ONLINE_FAILURES] = 0
+        self._online_records[start + _ONLINE_NODE_ID] = node_id
+        self._online_records[start + _ONLINE_FAILURES] = 0
         self._online_count += 1
         self._set_online_last_seen(insert_at, now)
         return True
@@ -351,43 +338,42 @@ class TransportNode:
             self._copy_record(current, current + 1)
         self._online_count -= 1
         start = self._online_start(self._online_count)
-        for offset in range(ONLINE_RECORD_SIZE):
+        for offset in range(_ONLINE_RECORD_SIZE):
             self._online_records[start + offset] = 0
 
     def _note_node_seen(self, node_id):
-        if not self._is_master() or node_id == MASTER_NODE_ID:
+        if not self.is_master or node_id == MASTER_NODE_ID:
             return
         index = self._find_online_by_id(node_id)
         if index < 0:
             return
         start = self._online_start(index)
-        self._online_records[start + ONLINE_FAILURES] = 0
+        self._online_records[start + _ONLINE_FAILURES] = 0
         self._set_online_last_seen(index, utime.ticks_ms())
 
     def _note_tx_failure(self, node_id):
-        if not self._is_master() or node_id == MASTER_NODE_ID:
+        if not self.is_master or node_id == MASTER_NODE_ID:
             return
         index = self._find_online_by_id(node_id)
         if index < 0:
             return
         start = self._online_start(index)
-        failures = self._online_records[start + ONLINE_FAILURES]
+        failures = self._online_records[start + _ONLINE_FAILURES]
         failures = min(255, failures + 1)
-        self._online_records[start + ONLINE_FAILURES] = failures
+        self._online_records[start + _ONLINE_FAILURES] = failures
         # Space health attempts out rather than declaring a node offline after
         # three probes fired a few milliseconds apart.
         self._set_online_last_seen(index, utime.ticks_ms())
         if failures >= MAX_CONSECUTIVE_FAILURES:
             if self.debug:
-                print("[health] removing node", node_id)
+                print("DROP", node_id)
             self._remove_online(index)
 
     def _local_node_info(self, node_index):
         if node_index == 0:
             return {
                 "uuid": self.uuid,
-                "node_id": MASTER_NODE_ID,
-                "role": "master",
+                "id": MASTER_NODE_ID,
             }
 
         index = node_index - 1
@@ -396,13 +382,12 @@ class TransportNode:
         start = self._online_start(index)
         uuid_bytes = bytes(
             self._online_records[
-                start + ONLINE_UUID:start + ONLINE_UUID + UUID_SIZE
+                start + _ONLINE_UUID:start + _ONLINE_UUID + UUID_SIZE
             ]
         )
         return {
             "uuid": uuid_bytes.hex(),
-            "node_id": self._online_records[start + ONLINE_NODE_ID],
-            "role": "slave",
+            "id": self._online_records[start + _ONLINE_NODE_ID],
         }
 
     # ---------- flash registry (scanned, never retained in RAM) ----------
@@ -416,14 +401,15 @@ class TransportNode:
                 for line in registry_file:
                     try:
                         record = ujson.loads(line)
-                        node_id = int(record["node_id"])
+                        # Accept registries created by the earlier format.
+                        node_id = int(record.get("id", record.get("node_id")))
                         if node_id > max_node_id:
                             max_node_id = node_id
                         if record["uuid"].lower() == wanted:
                             found = node_id
                     except (ValueError, KeyError, TypeError):
                         if self.debug:
-                            print("[registry] ignoring invalid record")
+                            print("REG bad")
         except OSError:
             pass
         return found, max_node_id
@@ -437,7 +423,7 @@ class TransportNode:
         if node_id > MAX_SLAVE_NODE_ID:
             raise RuntimeError("node id space exhausted")
 
-        record = {"uuid": uuid_bytes.hex(), "node_id": node_id}
+        record = {"uuid": uuid_bytes.hex(), "id": node_id}
         with open("registry.jsonl", "a") as registry_file:
             registry_file.write(ujson.dumps(record) + "\n")
         return node_id
@@ -487,7 +473,7 @@ class TransportNode:
     async def _send_packet_sequence(self, dst_id, msg_type, msg_id, payload,
                                     tx_address=None, mark_last=True,
                                     track_health=True,
-                                    background_service=None):
+                                    background=False):
         if not 0 < msg_type <= MESSAGE_TYPE_MASK:
             raise ValueError("invalid message type")
         if not isinstance(payload, (bytes, bytearray)):
@@ -496,10 +482,9 @@ class TransportNode:
             tx_address = self._endpoint_address(dst_id)
 
         await self._radio_lock.acquire()
-        if background_service is not None and not \
-                self._background_service_allowed(
-                    utime.ticks_ms(), background_service
-                ):
+        if background and not self._background_service_allowed(
+                utime.ticks_ms()
+        ):
             self._radio_lock.release()
             return False
 
@@ -536,41 +521,18 @@ class TransportNode:
                 crc = _crc8_update(crc, chunk)
                 packet = header + chunk + bytes((crc,))
 
-                if self.debug and fragment_index == 1:
-                    print(
-                        "[TX]", _message_name(msg_type),
-                        "src", header[1], "dst", dst_id,
-                        "msg", msg_id, "fragments", fragment_count,
-                        "bytes", payload_length,
-                        "address", tx_address.hex(),
-                    )
                 await self._send_payload_locked(packet)
-                if self.debug and fragment_count > 1:
-                    print(
-                        "[TX fragment]", fragment_index, "/", fragment_count,
-                        "length", len(chunk),
-                        "last", bool(flags & LAST_PACKET),
-                    )
 
                 if payload_length == 0:
                     offset = 1
                 else:
                     offset += len(chunk)
-            if self.debug:
-                print(
-                    "[TX done]", _message_name(msg_type),
-                    "dst", dst_id, "msg", msg_id,
-                )
         except Exception as error:
             failed = True
             if self.debug:
-                print(
-                    "[TX failed]", _message_name(msg_type),
-                    "dst", dst_id, "msg", msg_id,
-                    "fragment", fragment_index, "/", fragment_count,
-                    "pending replies", len(self._awaiting_replies),
-                    "error", error,
-                )
+                print("TX! t", msg_type, "d", dst_id, "m", msg_id,
+                      "f", fragment_index, "/", fragment_count,
+                      "q", len(self._awaiting_replies), error)
             raise
         finally:
             # open_tx_pipe() already configured and enabled pipe 0 for PTX ACK
@@ -600,13 +562,13 @@ class TransportNode:
                     # A malformed application command or failed reply must not
                     # terminate the transport service permanently.
                     if self.debug:
-                        print("[transport] packet handler failed:", error)
+                        print("RX!", error)
 
             try:
                 await self._run_periodic_tasks()
             except Exception as error:
                 if self.debug:
-                    print("[transport] periodic task failed:", error)
+                    print("BG!", error)
             await uasyncio.sleep_ms(RX_POLL_INTERVAL_MS)
 
     async def _run_periodic_tasks(self):
@@ -614,7 +576,7 @@ class TransportNode:
         await self._expire_reassembly(now)
         await self._expire_streams(now)
 
-        if self._is_master():
+        if self.is_master:
             await self._master_periodic(now)
             return
 
@@ -628,7 +590,7 @@ class TransportNode:
 
         if utime.ticks_diff(now, self._last_master_confirm) >= \
                 self._confirm_delay_ms:
-            if not self._background_service_allowed(now, "ENUM_CONFIRM"):
+            if not self._background_service_allowed(now):
                 return
             try:
                 sent = await self._send_enum_confirm(background=True)
@@ -650,17 +612,17 @@ class TransportNode:
             if utime.ticks_diff(now, self._online_last_seen(index)) < \
                     self._health_probe_delay(index):
                 continue
-            if not self._background_service_allowed(now, "HEALTH_PROBE"):
+            if not self._background_service_allowed(now):
                 return
             start = self._online_start(index)
-            node_id = self._online_records[start + ONLINE_NODE_ID]
+            node_id = self._online_records[start + _ONLINE_NODE_ID]
             try:
                 sent = await self._send_json(
                     node_id,
                     MGMT_REQUEST,
                     0,
-                    {"op": "ping", "reply": False},
-                    background_service="HEALTH_PROBE",
+                    {"op": _OP_PING, "r": False},
+                    background=True,
                 )
                 if not sent:
                     return
@@ -668,48 +630,31 @@ class TransportNode:
                 pass
             return
 
-    def _has_active_reassembly(self):
+    def _transport_busy(self):
+        if self._awaiting_replies:
+            return True
         for slot in range(COMMAND_REASSEMBLY_SLOTS):
             start = self._reasm_start(slot)
-            if self._reassembly[start + REASM_ACTIVE]:
+            if self._reassembly[start + _REASM_ACTIVE]:
                 return True
-        return False
-
-    def _has_active_streams(self):
         for slot in range(MAX_OPEN_STREAMS):
             start = self._stream_start(slot)
-            if self._incoming_streams[start + STREAM_ACTIVE] or \
-                    self._outgoing_streams[start + STREAM_ACTIVE]:
+            if self._incoming_streams[start + _STREAM_ACTIVE] or \
+                    self._outgoing_streams[start + _STREAM_ACTIVE]:
                 return True
         return False
 
-    def _background_service_allowed(self, now, service_name):
-        has_pending = bool(self._awaiting_replies)
-        has_reassembly = self._has_active_reassembly()
-        has_streams = self._has_active_streams()
-        quiet_for = utime.ticks_diff(now, self._last_radio_activity)
-        allowed = not has_pending and not has_reassembly and \
-            not has_streams and quiet_for >= BACKGROUND_QUIET_MS
-
-        if not allowed and self.debug and utime.ticks_diff(
-                now, self._last_service_suppression_log
-        ) >= SERVICE_SUPPRESSION_LOG_MS:
-            print(
-                "[service delayed]", service_name,
-                "pending", len(self._awaiting_replies),
-                "reassembly", has_reassembly,
-                "streams", has_streams,
-                "quiet_ms", quiet_for,
-            )
-            self._last_service_suppression_log = now
-        return allowed
+    def _background_service_allowed(self, now):
+        return not self._transport_busy() and utime.ticks_diff(
+            now, self._last_radio_activity
+        ) >= BACKGROUND_QUIET_MS
 
     def _health_probe_delay(self, index):
         start = self._online_start(index)
         value = 0x5A
         for offset in range(UUID_SIZE):
             value = ((value * 33) ^ self._online_records[
-                start + ONLINE_UUID + offset
+                start + _ONLINE_UUID + offset
             ]) & 0x7FFFFFFF
         return HEALTH_PROBE_INTERVAL_MS + \
             value % (HEALTH_PROBE_JITTER_MS + 1)
@@ -773,25 +718,18 @@ class TransportNode:
         if packet[crc_position] != expected_crc:
             return
 
-        if self.debug:
-            print(
-                "[RX]", _message_name(msg_type),
-                "src", src_id, "dst", dst_id, "msg", msg_id,
-                "length", payload_length, "last", last_packet,
-            )
-
         if msg_type == ENUM_HELLO:
-            if self._is_master() and dst_id == MASTER_NODE_ID:
+            if self.is_master and dst_id == MASTER_NODE_ID:
                 await self._handle_enum_hello(payload)
             return
 
         if msg_type == ENUM_ASSIGN:
-            if not self._is_master() and dst_id == UNASSIGNED_NODE_ID:
+            if not self.is_master and dst_id == UNASSIGNED_NODE_ID:
                 await self._handle_enum_assign(payload)
             return
 
         if msg_type == ENUM_CONFIRM:
-            if self._is_master() and dst_id == MASTER_NODE_ID:
+            if self.is_master and dst_id == MASTER_NODE_ID:
                 await self._handle_enum_confirm(src_id, payload)
             return
 
@@ -803,7 +741,7 @@ class TransportNode:
         if src_id == UNASSIGNED_NODE_ID:
             return
 
-        if self._is_master():
+        if self.is_master:
             # Assigned traffic becomes eligible only after ENUM_CONFIRM.
             if src_id != MASTER_NODE_ID and \
                     self._find_online_by_id(src_id) < 0:
@@ -820,12 +758,12 @@ class TransportNode:
             )
 
     def _reasm_start(self, slot):
-        return slot * REASM_RECORD_SIZE
+        return slot * _REASM_RECORD_SIZE
 
     def _clear_reassembly(self, slot):
         start = self._reasm_start(slot)
-        self._reassembly[start + REASM_ACTIVE] = 0
-        self._reassembly[start + REASM_LENGTH] = 0
+        self._reassembly[start + _REASM_ACTIVE] = 0
+        self._reassembly[start + _REASM_LENGTH] = 0
 
     async def _append_reassembly(self, msg_type, src_id, msg_id,
                                  payload, last_packet):
@@ -833,13 +771,13 @@ class TransportNode:
         free_slot = -1
         for slot in range(COMMAND_REASSEMBLY_SLOTS):
             start = self._reasm_start(slot)
-            if not self._reassembly[start + REASM_ACTIVE]:
+            if not self._reassembly[start + _REASM_ACTIVE]:
                 if free_slot < 0:
                     free_slot = slot
                 continue
-            if self._reassembly[start + REASM_TYPE] == msg_type and \
-                    self._reassembly[start + REASM_SRC] == src_id and \
-                    self._reassembly[start + REASM_MSG_ID] == msg_id:
+            if self._reassembly[start + _REASM_TYPE] == msg_type and \
+                    self._reassembly[start + _REASM_SRC] == src_id and \
+                    self._reassembly[start + _REASM_MSG_ID] == msg_id:
                 selected = slot
                 break
 
@@ -847,30 +785,30 @@ class TransportNode:
             selected = free_slot
             if selected < 0:
                 if self.debug:
-                    print("[reassembly] no free slot")
+                    print("RX full")
                 return
             start = self._reasm_start(selected)
-            self._reassembly[start + REASM_ACTIVE] = 1
-            self._reassembly[start + REASM_TYPE] = msg_type
-            self._reassembly[start + REASM_SRC] = src_id
-            self._reassembly[start + REASM_MSG_ID] = msg_id
-            self._reassembly[start + REASM_LENGTH] = 0
+            self._reassembly[start + _REASM_ACTIVE] = 1
+            self._reassembly[start + _REASM_TYPE] = msg_type
+            self._reassembly[start + _REASM_SRC] = src_id
+            self._reassembly[start + _REASM_MSG_ID] = msg_id
+            self._reassembly[start + _REASM_LENGTH] = 0
 
         start = self._reasm_start(selected)
-        current_length = self._reassembly[start + REASM_LENGTH]
+        current_length = self._reassembly[start + _REASM_LENGTH]
         new_length = current_length + len(payload)
         if new_length > MAX_COMMAND_SIZE:
             self._clear_reassembly(selected)
             if self.debug:
-                print("[reassembly] message too large")
+                print("RX large")
             return
 
-        data_start = start + REASM_DATA + current_length
+        data_start = start + _REASM_DATA + current_length
         for offset in range(len(payload)):
             self._reassembly[data_start + offset] = payload[offset]
-        self._reassembly[start + REASM_LENGTH] = new_length
+        self._reassembly[start + _REASM_LENGTH] = new_length
         ustruct.pack_into(
-            "<I", self._reassembly, start + REASM_LAST_SEEN,
+            "<I", self._reassembly, start + _REASM_LAST_SEEN,
             utime.ticks_ms()
         )
 
@@ -878,8 +816,8 @@ class TransportNode:
             return
 
         complete = bytes(
-            self._reassembly[start + REASM_DATA:
-                             start + REASM_DATA + new_length]
+            self._reassembly[start + _REASM_DATA:
+                             start + _REASM_DATA + new_length]
         )
         self._clear_reassembly(selected)
         await self._handle_complete_message(
@@ -889,10 +827,10 @@ class TransportNode:
     async def _expire_reassembly(self, now):
         for slot in range(COMMAND_REASSEMBLY_SLOTS):
             start = self._reasm_start(slot)
-            if not self._reassembly[start + REASM_ACTIVE]:
+            if not self._reassembly[start + _REASM_ACTIVE]:
                 continue
             last_seen = ustruct.unpack_from(
-                "<I", self._reassembly, start + REASM_LAST_SEEN
+                "<I", self._reassembly, start + _REASM_LAST_SEEN
             )[0]
             if utime.ticks_diff(now, last_seen) >= REASSEMBLY_TIMEOUT_MS:
                 self._clear_reassembly(slot)
@@ -903,7 +841,7 @@ class TransportNode:
             value = ujson.loads(payload)
         except (ValueError, TypeError):
             if self.debug:
-                print("[transport] invalid JSON payload")
+                print("JSON bad")
             return
 
         if msg_type == CMD:
@@ -931,7 +869,7 @@ class TransportNode:
             )
         except OSError:
             if self.debug:
-                print("[registration] hello not acknowledged")
+                print("HELLO noack")
 
     async def _handle_enum_hello(self, payload):
         if len(payload) != UUID_SIZE:
@@ -941,7 +879,7 @@ class TransportNode:
             node_id = self._get_or_create_assignment(uuid_bytes)
         except (OSError, RuntimeError) as error:
             if self.debug:
-                print("[registration] assignment failed:", error)
+                print("ASSIGN!", error)
             return
 
         assignment = uuid_bytes + bytes((node_id,))
@@ -958,7 +896,7 @@ class TransportNode:
             # The receiver may still have obtained the packet while its ACK was
             # lost. ENUM_CONFIRM or the next HELLO resolves the uncertainty.
             if self.debug:
-                print("[registration] assignment not acknowledged")
+                print("ASSIGN noack")
 
     async def _handle_enum_assign(self, payload):
         if len(payload) != UUID_SIZE + 1:
@@ -1003,7 +941,7 @@ class TransportNode:
             0,
             payload,
             track_health=False,
-            background_service="ENUM_CONFIRM" if background else None,
+            background=background,
         )
 
     async def _handle_enum_confirm(self, src_id, payload):
@@ -1016,7 +954,7 @@ class TransportNode:
         if not self._assignment_matches(uuid_bytes, node_id):
             return
         if not self._mark_online(node_id, uuid_bytes) and self.debug:
-            print("[registration] online-node capacity reached")
+            print("ONLINE full")
 
     async def _become_unassigned(self):
         await self._radio_lock.acquire()
@@ -1038,31 +976,31 @@ class TransportNode:
     # ---------- management and public command API ----------
 
     async def _send_json(self, dst_id, msg_type, msg_id, value,
-                         mark_last=True, background_service=None):
+                         mark_last=True, background=False):
         payload = ujson.dumps(value).encode()
         if msg_type != STREAM and len(payload) > MAX_COMMAND_SIZE:
             raise ValueError("encoded message exceeds MAX_COMMAND_SIZE")
         return await self._send_packet_sequence(
             dst_id, msg_type, msg_id, payload, mark_last=mark_last,
-            background_service=background_service,
+            background=background,
         )
 
     async def _handle_management_request(self, src_id, msg_id, request):
         operation = request.get("op") if isinstance(request, dict) else None
         reply = None
 
-        if operation == "ping":
-            if request.get("reply", True):
+        if operation == _OP_PING:
+            if request.get("r", True):
                 reply = {"ok": True}
-        elif self._is_master() and operation == "get_nodes_qty":
-            reply = {"nodes_qty": 1 + self._online_count}
-        elif self._is_master() and operation == "get_node_info":
-            info = self._local_node_info(request.get("index", -1))
+        elif self.is_master and operation == _OP_GET_QTY:
+            reply = {"qty": 1 + self._online_count}
+        elif self.is_master and operation == _OP_GET_INFO:
+            info = self._local_node_info(request.get("i", -1))
             reply = {"node": info}
-        elif self._is_master():
-            reply = {"error": "unknown_management_operation"}
+        elif self.is_master:
+            reply = {"err": "op"}
         else:
-            reply = {"error": "not_master"}
+            reply = {"err": "master"}
 
         if reply is not None:
             await self._send_json(src_id, MGMT_REPLY, msg_id, reply)
@@ -1095,13 +1033,8 @@ class TransportNode:
             while pending[2] is _NO_REPLY:
                 if utime.ticks_diff(utime.ticks_ms(), started) >= timeout_ms:
                     if self.debug:
-                        print(
-                            "[request timeout]",
-                            _message_name(request_type),
-                            "dst", dst_id, "msg", msg_id,
-                            "expected", _message_name(reply_type),
-                            "timeout_ms", timeout_ms,
-                        )
+                        print("WAIT! t", request_type, "d", dst_id,
+                              "m", msg_id, "r", reply_type)
                     raise RuntimeError("request timed out")
                 await uasyncio.sleep_ms(5)
             return pending[2]
@@ -1109,24 +1042,24 @@ class TransportNode:
             self._awaiting_replies.pop(msg_id, None)
 
     async def get_nodes_qty(self):
-        if self._is_master():
+        if self.is_master:
             return 1 + self._online_count
         reply = await self._request(
             MASTER_NODE_ID,
             MGMT_REQUEST,
             MGMT_REPLY,
-            {"op": "get_nodes_qty"},
+            {"op": _OP_GET_QTY},
         )
-        return reply.get("nodes_qty", 0)
+        return reply.get("qty", 0)
 
     async def get_node_info(self, node_index):
-        if self._is_master():
+        if self.is_master:
             return self._local_node_info(node_index)
         reply = await self._request(
             MASTER_NODE_ID,
             MGMT_REQUEST,
             MGMT_REPLY,
-            {"op": "get_node_info", "index": node_index},
+            {"op": _OP_GET_INFO, "i": node_index},
         )
         return reply.get("node")
 
@@ -1155,18 +1088,18 @@ class TransportNode:
     # ---------- streaming API ----------
 
     def _stream_start(self, slot):
-        return slot * STREAM_RECORD_SIZE
+        return slot * _STREAM_RECORD_SIZE
 
     def _find_stream(self, records, node_id, stream_id):
         free_slot = -1
         for slot in range(MAX_OPEN_STREAMS):
             start = self._stream_start(slot)
-            if not records[start + STREAM_ACTIVE]:
+            if not records[start + _STREAM_ACTIVE]:
                 if free_slot < 0:
                     free_slot = slot
                 continue
-            if records[start + STREAM_NODE_ID] == node_id and \
-                    records[start + STREAM_ID] == stream_id:
+            if records[start + _STREAM_NODE_ID] == node_id and \
+                    records[start + _STREAM_ID] == stream_id:
                 return slot, free_slot
         return -1, free_slot
 
@@ -1176,8 +1109,8 @@ class TransportNode:
             in_use = False
             for slot in range(MAX_OPEN_STREAMS):
                 start = self._stream_start(slot)
-                if self._outgoing_streams[start + STREAM_ACTIVE] and \
-                        self._outgoing_streams[start + STREAM_ID] == \
+                if self._outgoing_streams[start + _STREAM_ACTIVE] and \
+                        self._outgoing_streams[start + _STREAM_ID] == \
                         self._last_stream_id:
                     in_use = True
                     break
@@ -1193,11 +1126,11 @@ class TransportNode:
         if free_slot < 0:
             raise RuntimeError("too many open outgoing streams")
         start = self._stream_start(free_slot)
-        self._outgoing_streams[start + STREAM_ACTIVE] = 1
-        self._outgoing_streams[start + STREAM_NODE_ID] = node_id
-        self._outgoing_streams[start + STREAM_ID] = stream_id
+        self._outgoing_streams[start + _STREAM_ACTIVE] = 1
+        self._outgoing_streams[start + _STREAM_NODE_ID] = node_id
+        self._outgoing_streams[start + _STREAM_ID] = stream_id
         ustruct.pack_into(
-            "<I", self._outgoing_streams, start + STREAM_LAST_SEEN,
+            "<I", self._outgoing_streams, start + _STREAM_LAST_SEEN,
             utime.ticks_ms()
         )
         return stream_id
@@ -1206,15 +1139,15 @@ class TransportNode:
         selected = -1
         for slot in range(MAX_OPEN_STREAMS):
             start = self._stream_start(slot)
-            if self._outgoing_streams[start + STREAM_ACTIVE] and \
-                    self._outgoing_streams[start + STREAM_ID] == pipe_id:
+            if self._outgoing_streams[start + _STREAM_ACTIVE] and \
+                    self._outgoing_streams[start + _STREAM_ID] == pipe_id:
                 selected = slot
                 break
         if selected < 0:
             raise ValueError("unknown outgoing pipe")
 
         start = self._stream_start(selected)
-        dst_id = self._outgoing_streams[start + STREAM_NODE_ID]
+        dst_id = self._outgoing_streams[start + _STREAM_NODE_ID]
         payload = bytes(data)
 
         if dst_id == self.node_id:
@@ -1227,10 +1160,10 @@ class TransportNode:
             )
 
         if close:
-            self._outgoing_streams[start + STREAM_ACTIVE] = 0
+            self._outgoing_streams[start + _STREAM_ACTIVE] = 0
         else:
             ustruct.pack_into(
-                "<I", self._outgoing_streams, start + STREAM_LAST_SEEN,
+                "<I", self._outgoing_streams, start + _STREAM_LAST_SEEN,
                 utime.ticks_ms()
             )
 
@@ -1242,49 +1175,49 @@ class TransportNode:
         if selected < 0:
             if free_slot < 0:
                 if self.debug:
-                    print("[stream] no free incoming stream slot")
+                    print("PIPE full")
                 return
             selected = free_slot
             start = self._stream_start(selected)
-            self._incoming_streams[start + STREAM_ACTIVE] = 1
-            self._incoming_streams[start + STREAM_NODE_ID] = src_id
-            self._incoming_streams[start + STREAM_ID] = stream_id
+            self._incoming_streams[start + _STREAM_ACTIVE] = 1
+            self._incoming_streams[start + _STREAM_NODE_ID] = src_id
+            self._incoming_streams[start + _STREAM_ID] = stream_id
             await self.on_pipe_opened(stream_id, src_id)
 
         start = self._stream_start(selected)
         ustruct.pack_into(
-            "<I", self._incoming_streams, start + STREAM_LAST_SEEN,
+            "<I", self._incoming_streams, start + _STREAM_LAST_SEEN,
             utime.ticks_ms()
         )
         if payload:
             await self.on_pipe_data(stream_id, src_id, payload)
         if last_packet:
-            self._incoming_streams[start + STREAM_ACTIVE] = 0
+            self._incoming_streams[start + _STREAM_ACTIVE] = 0
             await self.on_pipe_closed(stream_id, src_id)
 
     async def _expire_streams(self, now):
         for slot in range(MAX_OPEN_STREAMS):
             start = self._stream_start(slot)
-            if not self._incoming_streams[start + STREAM_ACTIVE]:
+            if not self._incoming_streams[start + _STREAM_ACTIVE]:
                 continue
             last_seen = ustruct.unpack_from(
-                "<I", self._incoming_streams, start + STREAM_LAST_SEEN
+                "<I", self._incoming_streams, start + _STREAM_LAST_SEEN
             )[0]
             if utime.ticks_diff(now, last_seen) >= STREAM_TIMEOUT_MS:
-                stream_id = self._incoming_streams[start + STREAM_ID]
-                src_id = self._incoming_streams[start + STREAM_NODE_ID]
-                self._incoming_streams[start + STREAM_ACTIVE] = 0
+                stream_id = self._incoming_streams[start + _STREAM_ID]
+                src_id = self._incoming_streams[start + _STREAM_NODE_ID]
+                self._incoming_streams[start + _STREAM_ACTIVE] = 0
                 await self.on_pipe_closed(stream_id, src_id)
 
         for slot in range(MAX_OPEN_STREAMS):
             start = self._stream_start(slot)
-            if not self._outgoing_streams[start + STREAM_ACTIVE]:
+            if not self._outgoing_streams[start + _STREAM_ACTIVE]:
                 continue
             last_seen = ustruct.unpack_from(
-                "<I", self._outgoing_streams, start + STREAM_LAST_SEEN
+                "<I", self._outgoing_streams, start + _STREAM_LAST_SEEN
             )[0]
             if utime.ticks_diff(now, last_seen) >= STREAM_TIMEOUT_MS:
-                self._outgoing_streams[start + STREAM_ACTIVE] = 0
+                self._outgoing_streams[start + _STREAM_ACTIVE] = 0
 
     async def on_pipe_opened(self, pipe_id, src_id):
         pass

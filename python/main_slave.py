@@ -1,10 +1,10 @@
 import asyncio
-from transport_node import *
+from transport_node import TransportNode
 
 class SlaveNode(TransportNode):
 
     async def on_command(self, src_id, command):
-        print("node", src_id, "has sent", command)
+        print("RX", src_id, command)
         ret = {
             "slave_response": "all good",
         }
@@ -13,29 +13,29 @@ class SlaveNode(TransportNode):
     async def periodic_task(self):
         # Wait until enumeration is complete
         while self.node_id is None:
-            print("Waiting for enumeration...")
+            print("WAIT enum")
             await asyncio.sleep(2)
 
-        print("Slave node ID:", self.node_id)
-        print("Starting periodic broadcast loop")
+        print("ID", self.node_id)
+        print("LOOP start")
 
         while True:
             try:
                 # Ask master how many nodes exist
                 qty = await self.get_nodes_qty()
-                print("Master reports", qty, "nodes")
+                print("NODES", qty)
 
                 # Query each node
                 for idx in range(qty):
                     info = await self.get_node_info(idx)
-                    print("Node", idx, "info:", info)
+                    print("INFO", idx, info)
 
-                    node_id = info.get("node_id")
+                    node_id = info.get("id")
                     if node_id is None:
-                        print("Node", idx, "has no node_id, skipping")
+                        print("SKIP no-id", idx)
                         continue
                     if node_id == self.node_id:
-                        print( "Node", idx, "is the same node as this one with node_id =", node_id, "skipping" )
+                        print("SKIP self", node_id)
                         continue
 
                     cmd = {
@@ -45,22 +45,22 @@ class SlaveNode(TransportNode):
                         "message": "Hello from slave {}".format(self.node_id)
                     }
 
-                    print("Sending command to node", node_id, ":", cmd)
+                    print("TX", node_id, cmd)
 
                     try:
                         reply = await self.send_command_and_wait_reply(node_id, cmd)
-                        print("Reply from node", node_id, ":", reply)
+                        print("REPLY", node_id, reply)
                     except Exception as e:
-                        print("Node", node_id, "did not reply:", e)
+                        print("NOREPLY", node_id, e)
 
             except Exception as e:
-                print("Error during periodic task:", e)
+                print("LOOP!", e)
 
             await asyncio.sleep(5)  # repeat every 5 seconds
 
 
 async def async_main():
-    tr = SlaveNode(role="slave")
+    tr = SlaveNode()
 
     # Start periodic task
     asyncio.create_task(tr.periodic_task())

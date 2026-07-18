@@ -63,11 +63,11 @@ class FakeRadio:
             return 1
         return None
 
-    def abort_send(self):
-        self._tx_pending = False
-
     def read_observe_tx(self):
         return 0
+
+    def abort_send(self):
+        self._tx_pending = False
 
 
 def import_transport_module():
@@ -115,14 +115,14 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
         self.write_identity("0011223344556677")
         master_radio = FakeRadio()
         master = self.transport.TransportNode(
-            role="master", debug=False,
+            is_master=True, debug=False,
             network_id="01B237AA", radio=master_radio,
         )
 
         self.write_identity("8899aabbccddeeff")
         slave_radio = FakeRadio()
         slave = self.transport.TransportNode(
-            role="slave", debug=False,
+            is_master=False, debug=False,
             network_id="01b237aa", radio=slave_radio,
         )
 
@@ -153,7 +153,14 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(slave.node_id, 1)
         self.assertEqual(slave_radio.rx_pipes[1], master._endpoint_address(1))
         self.assertEqual(await master.get_nodes_qty(), 2)
-        self.assertEqual((await master.get_node_info(1))["uuid"], slave.uuid)
+        self.assertEqual(
+            await master.get_node_info(0),
+            {"uuid": master.uuid, "id": 0},
+        )
+        self.assertEqual(
+            await master.get_node_info(1),
+            {"uuid": slave.uuid, "id": 1},
+        )
 
         # A duplicate hello reuses the allocation and does not append a record.
         await master._handle_rx_packet(hello_packet)
@@ -163,25 +170,25 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
     async def test_packed_online_records_are_sorted_and_removed(self):
         self.write_identity("0011223344556677")
         node = self.transport.TransportNode(
-            role="master", debug=False, radio=FakeRadio()
+            is_master=True, debug=False, radio=FakeRadio()
         )
         node._mark_online(7, bytes.fromhex("0707070707070707"))
         node._mark_online(2, bytes.fromhex("0202020202020202"))
         node._mark_online(5, bytes.fromhex("0505050505050505"))
 
-        self.assertEqual((await node.get_node_info(1))["node_id"], 2)
-        self.assertEqual((await node.get_node_info(2))["node_id"], 5)
-        self.assertEqual((await node.get_node_info(3))["node_id"], 7)
+        self.assertEqual((await node.get_node_info(1))["id"], 2)
+        self.assertEqual((await node.get_node_info(2))["id"], 5)
+        self.assertEqual((await node.get_node_info(3))["id"], 7)
 
         for unused in range(self.transport.MAX_CONSECUTIVE_FAILURES):
             node._note_tx_failure(5)
         self.assertEqual(await node.get_nodes_qty(), 3)
-        self.assertEqual((await node.get_node_info(2))["node_id"], 7)
+        self.assertEqual((await node.get_node_info(2))["id"], 7)
 
     async def test_fragmented_command_uses_bounded_reassembly(self):
         self.write_identity("0011223344556677")
         slave = self.transport.TransportNode(
-            role="slave", debug=False, radio=FakeRadio()
+            is_master=False, debug=False, radio=FakeRadio()
         )
         slave.node_id = 3
         received = []
@@ -208,7 +215,7 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
     async def test_local_master_command_has_same_endpoint_api(self):
         self.write_identity("0011223344556677")
         master = self.transport.TransportNode(
-            role="master", debug=False, radio=FakeRadio()
+            is_master=True, debug=False, radio=FakeRadio()
         )
 
         async def on_command(src_id, command):
@@ -222,14 +229,14 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
         self.write_identity("0011223344556677")
         master_radio = FakeRadio()
         master = self.transport.TransportNode(
-            role="master", debug=False, radio=master_radio
+            is_master=True, debug=False, radio=master_radio
         )
         master._mark_online(1, bytes.fromhex("8899aabbccddeeff"))
 
         self.write_identity("8899aabbccddeeff")
         slave_radio = FakeRadio()
         slave = self.transport.TransportNode(
-            role="slave", debug=False, radio=slave_radio
+            is_master=False, debug=False, radio=slave_radio
         )
         slave.node_id = 1
         slave._master_acknowledged = True
@@ -255,12 +262,12 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
         self.write_identity("0011223344556677")
         sender_radio = FakeRadio()
         sender = self.transport.TransportNode(
-            role="master", debug=False, radio=sender_radio
+            is_master=True, debug=False, radio=sender_radio
         )
 
         self.write_identity("8899aabbccddeeff")
         receiver = self.transport.TransportNode(
-            role="slave", debug=False, radio=FakeRadio()
+            is_master=False, debug=False, radio=FakeRadio()
         )
         receiver.node_id = 3
         received = []
@@ -299,7 +306,7 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
         self.write_identity("8899aabbccddeeff")
         slave_radio = FakeRadio()
         slave = self.transport.TransportNode(
-            role="slave", debug=False, radio=slave_radio
+            is_master=False, debug=False, radio=slave_radio
         )
         slave.node_id = 1
         slave._master_acknowledged = True
