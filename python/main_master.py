@@ -1,4 +1,5 @@
 import asyncio
+import gc
 
 from transport_node import TransportNode
 
@@ -6,7 +7,8 @@ class MasterNode(TransportNode):
 
     async def on_command( self, src_id, command ):
         print("RX", src_id, command)
-        ret = { "master_response": "all good", "value": 123, "f_value": 12.34 }
+        free_bytes = gc.mem_free()
+        ret = { "master free mem": free_bytes }
         return ret
 
 
@@ -20,3 +22,4 @@ def main():
     asyncio.run(async_main())
 
 
+main()

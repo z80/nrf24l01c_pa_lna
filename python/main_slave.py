@@ -1,4 +1,5 @@
 import asyncio
+import gc
 from transport_node import TransportNode
 
 class SlaveNode(TransportNode):
@@ -37,12 +38,14 @@ class SlaveNode(TransportNode):
                     if node_id == self.node_id:
                         print("SKIP self", node_id)
                         continue
-
+                    
+                    free_bytes = gc.mem_free()
                     cmd = {
                         "cmd": "ping",
                         "from": self.node_id,
                         "to": node_id,
-                        "message": "Hello from slave {}".format(self.node_id)
+                        "message": "Hello from slave {}".format(self.node_id), 
+                        "slave free bytes": free_bytes
                     }
 
                     print("TX", node_id, cmd)
@@ -71,4 +74,8 @@ async def async_main():
 
 def main():
     asyncio.run(async_main())
+
+
+main()
+
 
