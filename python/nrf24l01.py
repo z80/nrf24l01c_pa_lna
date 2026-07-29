@@ -3,7 +3,54 @@
 from micropython import const
 import utime
 
-# ... keep all your existing register / const definitions ...
+# nRF24L01+ registers
+CONFIG = const(0x00)
+EN_RXADDR = const(0x02)
+SETUP_AW = const(0x03)
+SETUP_RETR = const(0x04)
+RF_CH = const(0x05)
+RF_SETUP = const(0x06)
+STATUS = const(0x07)
+OBSERVE_TX = const(0x08)
+RX_ADDR_P0 = const(0x0A)
+TX_ADDR = const(0x10)
+RX_PW_P0 = const(0x11)
+FIFO_STATUS = const(0x17)
+DYNPD = const(0x1C)
+
+# CONFIG register
+EN_CRC = const(0x08)
+CRCO = const(0x04)
+PWR_UP = const(0x02)
+PRIM_RX = const(0x01)
+
+# RF_SETUP register
+POWER_0 = const(0x00)
+POWER_1 = const(0x02)
+POWER_2 = const(0x04)
+POWER_3 = const(0x06)
+SPEED_1M = const(0x00)
+SPEED_2M = const(0x08)
+SPEED_250K = const(0x20)
+
+CONT_WAVE = const(0x80)
+PLL_LOCK  = const(0x40)
+
+# STATUS register
+RX_DR = const(0x40)
+TX_DS = const(0x20)
+MAX_RT = const(0x10)
+
+# FIFO_STATUS register
+RX_EMPTY = const(0x01)
+
+# commands
+R_RX_PL_WID = const(0x60)
+R_RX_PAYLOAD = const(0x61)
+W_TX_PAYLOAD = const(0xA0)
+FLUSH_TX = const(0xE1)
+FLUSH_RX = const(0xE2)
+NOP = const(0xFF)
 
 # Add a couple of useful ones if missing
 EN_AA     = const(0x01)
@@ -15,7 +62,30 @@ EN_DYN_ACK= const(0x01)
 class NRF24L01:
 
     # ------------------------------------------------------------
-    # Constructor – change the defaults
+    # Static helpers for optional external initialization
+    # ------------------------------------------------------------
+    @staticmethod
+    def init_spi_bus(spi, baudrate=4000000):
+        """Initialize SPI bus in nRF24L01-compatible mode."""
+        try:
+            master = spi.MASTER
+            spi.init(master, baudrate=baudrate, polarity=0, phase=0)
+        except AttributeError:
+            spi.init(baudrate=baudrate, polarity=0, phase=0)
+
+    @staticmethod
+    def init_radio_pins(cs, ce):
+        """Initialize CS and CE pins."""
+        cs.init(cs.OUT, value=1)
+        ce.init(ce.OUT, value=0)
+
+    @staticmethod
+    def init_irq_pin(irq_pin):
+        """Initialize IRQ pin as input with pull-up."""
+        irq_pin.init(irq_pin.IN, pull=irq_pin.PULL_UP)
+
+    # ------------------------------------------------------------
+    # Constructor - change the defaults
     # ------------------------------------------------------------
     def __init__(self, spi, cs, ce, channel=46, payload_size=32,
                  init_spi=True, init_pins=True,
@@ -70,7 +140,7 @@ class NRF24L01:
         self.power_up()
 
     # ------------------------------------------------------------
-    # Power management – the key latency win
+    # Power management - the key latency win
     # ------------------------------------------------------------
     def power_up(self):
         """Bring radio to Standby-I. 1.5 ms only if it was fully off."""
@@ -92,7 +162,7 @@ class NRF24L01:
         return self._powered
 
     # ------------------------------------------------------------
-    # RX / TX – hot path
+    # RX / TX - hot path
     # ------------------------------------------------------------
     def start_listening(self):
         self.power_up()
@@ -109,7 +179,7 @@ class NRF24L01:
 
     def stop_listening(self):
         self.ce(0)
-        # stay powered – do NOT clear PWR_UP
+        # stay powered - do NOT clear PWR_UP
 
     def any(self):
         return not bool(self.reg_read(FIFO_STATUS) & RX_EMPTY)
@@ -144,7 +214,7 @@ class NRF24L01:
             self.spi.write(b"\x00" * (self.payload_size - len(buf)))
         self.cs(1)
 
-        # Pulse CE ≥ 10 µs
+        # Pulse CE - 10 µs
         self.ce(1)
         utime.sleep_us(15)
         self.ce(0)
@@ -153,9 +223,9 @@ class NRF24L01:
         """
         Non-blocking check.
         Returns:
-            None  – still in progress
-            1     – success (TX_DS)
-            2     – failure (MAX_RT)
+            None  - still in progress
+            1     - success (TX_DS)
+            2     - failure (MAX_RT)
         """
         status = self.read_status()
         if not (status & (TX_DS | MAX_RT)):
@@ -182,7 +252,7 @@ class NRF24L01:
             if utime.ticks_diff(utime.ticks_ms(), start) >= timeout_ms:
                 self.abort_send()
                 raise OSError("timed out")
-            # tight spin – a few µs is enough; avoid asyncio here
+            # tight spin - a few µs is enough; avoid asyncio here
             utime.sleep_us(50)
 
     def abort_send(self):
