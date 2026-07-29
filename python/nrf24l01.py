@@ -1,4 +1,4 @@
-"""NRF24L01 driver for MicroPython - performance oriented"""
+"""NRF24L01 driver for MicroPython"""
 
 from micropython import const
 import utime
@@ -52,12 +52,13 @@ FLUSH_TX = const(0xE1)
 FLUSH_RX = const(0xE2)
 NOP = const(0xFF)
 
-# Add a couple of useful ones if missing
 EN_AA     = const(0x01)
 FEATURE   = const(0x1D)
 EN_DPL    = const(0x04)   # FEATURE bit
 EN_ACK_PAY= const(0x02)
 EN_DYN_ACK= const(0x01)
+
+
 
 class NRF24L01:
 
@@ -85,15 +86,15 @@ class NRF24L01:
         irq_pin.init(irq_pin.IN, pull=irq_pin.PULL_UP)
 
     # ------------------------------------------------------------
-    # Constructor - change the defaults
+    # Constructor
     # ------------------------------------------------------------
-    def __init__(self, spi, cs, ce, channel=46, payload_size=32,
+    def __init__(self, spi, cs, ce, channel=46, payload_size=16,
                  init_spi=True, init_pins=True,
-                 irq=None, irq_handler=None,
+                 irq=None, irq_handler=None, 
                  speed=SPEED_2M,          # <-- 2 Mbps default
                  power=POWER_3,
                  ard_us=250,              # <-- short auto-retransmit delay
-                 arc=3):                  # <-- fewer retries
+                 arc=3):
 
         assert payload_size <= 32
 
@@ -140,7 +141,7 @@ class NRF24L01:
         self.power_up()
 
     # ------------------------------------------------------------
-    # Power management - the key latency win
+    # Power management – the key latency win
     # ------------------------------------------------------------
     def power_up(self):
         """Bring radio to Standby-I. 1.5 ms only if it was fully off."""
@@ -162,7 +163,115 @@ class NRF24L01:
         return self._powered
 
     # ------------------------------------------------------------
-    # RX / TX - hot path
+    # IRQ wrapper (safe ISR)
+    # ------------------------------------------------------------
+    def _irq_wrapper(self, pin):
+        # Read + clear IRQ flags
+        status = self.read_status()
+        self.reg_write(STATUS, RX_DR | TX_DS | MAX_RT)
+
+        # Call user callback outside SPI operations
+        if self.irq_handler:
+            self.irq_handler(status)
+
+    # ------------------------------------------------------------
+    # Register access
+    # ------------------------------------------------------------
+    def reg_read(self, reg):
+        self.cs(0)
+        self.spi.readinto(self.buf, reg)
+        self.spi.readinto(self.buf)
+        self.cs(1)
+        return self.buf[0]
+
+    def reg_write_bytes(self, reg, buf):
+        self.cs(0)
+        self.spi.readinto(self.buf, 0x20 | reg)
+        self.spi.write(buf)
+        self.cs(1)
+        return self.buf[0]
+
+    def reg_write(self, reg, value):
+        self.cs(0)
+        self.spi.readinto(self.buf, 0x20 | reg)
+        ret = self.buf[0]
+        self.spi.readinto(self.buf, value)
+        self.cs(1)
+        return ret
+
+    def read_status(self):
+        self.cs(0)
+        self.spi.readinto(self.buf, NOP)
+        self.cs(1)
+        return self.buf[0]
+
+    def read_observe_tx(self):
+        """Return PLOS_CNT in bits 7:4 and ARC_CNT in bits 3:0."""
+        return self.reg_read(OBSERVE_TX)
+
+    def flush_rx(self):
+        self.cs(0)
+        self.spi.readinto(self.buf, FLUSH_RX)
+        self.cs(1)
+
+    def flush_tx(self):
+        self.cs(0)
+        self.spi.readinto(self.buf, FLUSH_TX)
+        self.cs(1)
+
+    # ------------------------------------------------------------
+    # Configuration
+    # ------------------------------------------------------------
+    def set_power_speed(self, power, speed):
+        setup = self.reg_read(RF_SETUP) & 0b11010001
+        self.reg_write(RF_SETUP, setup | power | speed)
+
+    def set_crc(self, length):
+        config = self.reg_read(CONFIG) & ~(CRCO | EN_CRC)
+        if length == 1:
+            config |= EN_CRC
+        elif length == 2:
+            config |= EN_CRC | CRCO
+        self.reg_write(CONFIG, config)
+
+    def set_channel(self, channel):
+        self.reg_write(RF_CH, min(channel, 125))
+
+    # ------------------------------------------------------------
+    # Pipes
+    # ------------------------------------------------------------
+    def open_tx_pipe(self, address):
+        assert len(address) == 5
+        self.reg_write_bytes(RX_ADDR_P0, address)
+        self.reg_write_bytes(TX_ADDR, address)
+        self.reg_write(RX_PW_P0, self.payload_size)
+        # Pipe 0 is used by the PTX to receive automatic acknowledgements.
+        self.reg_write(EN_RXADDR, self.reg_read(EN_RXADDR) | 0x01)
+
+    def open_rx_pipe(self, pipe_id, address):
+        assert len(address) == 5
+        assert 0 <= pipe_id <= 5
+
+        if pipe_id == 0:
+            self.pipe0_read_addr = address
+
+        if pipe_id < 2:
+            self.reg_write_bytes(RX_ADDR_P0 + pipe_id, address)
+        else:
+            self.reg_write(RX_ADDR_P0 + pipe_id, address[0])
+
+        self.reg_write(RX_PW_P0 + pipe_id, self.payload_size)
+        self.reg_write(EN_RXADDR, self.reg_read(EN_RXADDR) | (1 << pipe_id))
+
+    def close_rx_pipe(self, pipe_id):
+        assert 0 <= pipe_id <= 5
+        self.reg_write(EN_RXADDR,
+                       self.reg_read(EN_RXADDR) & ~(1 << pipe_id))
+        if pipe_id == 0:
+            self.pipe0_read_addr = None
+
+    # ------------------------------------------------------------
+    # RX/TX
     # ------------------------------------------------------------
     def start_listening(self):
         self.power_up()
@@ -179,7 +288,6 @@ class NRF24L01:
 
     def stop_listening(self):
         self.ce(0)
-        # stay powered - do NOT clear PWR_UP
 
     def any(self):
         return not bool(self.reg_read(FIFO_STATUS) & RX_EMPTY)
@@ -191,6 +299,22 @@ class NRF24L01:
         self.cs(1)
         self.reg_write(STATUS, RX_DR)
         return buf
+
+    def send(self, buf, timeout=500):
+        self.send_start(buf)
+        start = utime.ticks_ms()
+        result = None
+
+        while result is None and utime.ticks_diff(utime.ticks_ms(), start) < timeout:
+            result = self.send_done()
+
+        if result is None:
+            self.abort_send()
+            raise OSError("timed out")
+
+        if result == 2:
+            self.flush_tx()
+            raise OSError("send failed")
 
     def send_start(self, buf):
         """Start a transmission. Radio must already be powered."""
@@ -255,11 +379,42 @@ class NRF24L01:
             # tight spin - a few µs is enough; avoid asyncio here
             utime.sleep_us(50)
 
+
     def abort_send(self):
         self.ce(0)
         self.flush_tx()
         self.reg_write(STATUS, TX_DS | MAX_RT)
         # stay powered
+
+    # ------------------------------------------------------------
+    # Constant carrier mode
+    # ------------------------------------------------------------
+    def enter_const_carrier(self, channel=None, power=POWER_3):
+        if channel is not None:
+            self.set_channel(channel)
+
+        config = self.reg_read(CONFIG)
+        config |= PWR_UP
+        config &= ~PRIM_RX
+        self.reg_write(CONFIG, config)
+        utime.sleep_ms(2)
+
+        setup = self.reg_read(RF_SETUP)
+        setup &= 0b00110001
+        setup |= power | CONT_WAVE | PLL_LOCK
+        self.reg_write(RF_SETUP, setup)
+
+        self.ce(1)
+
+    def leave_const_carrier(self):
+        self.ce(0)
+        setup = self.reg_read(RF_SETUP)
+        setup &= ~(CONT_WAVE | PLL_LOCK)
+        self.reg_write(RF_SETUP, setup)
+
+        config = self.reg_read(CONFIG)
+        config &= ~PWR_UP
+        self.reg_write(CONFIG, config)
 
     # ------------------------------------------------------------
     # Optional helpers for the transport layer
@@ -276,3 +431,4 @@ class NRF24L01:
 
     def set_no_retries(self):
         self.reg_write(SETUP_RETR, 0)
+
