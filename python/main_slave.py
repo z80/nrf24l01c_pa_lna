@@ -66,7 +66,7 @@ async def async_main():
     tr = SlaveNode()
 
     # Start periodic task
-    asyncio.create_task(tr.periodic_task())
+    #asyncio.create_task(tr.periodic_task())
 
     # Main processing loop
     await tr.process()
