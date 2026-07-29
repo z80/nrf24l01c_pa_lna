@@ -48,8 +48,9 @@ MAX_PENDING_REQUESTS = const(2)
 MAX_CONSECUTIVE_FAILURES = const(3)
 MAX_OPEN_STREAMS = const(4)
 
-RX_POLL_INTERVAL_MS = const(2)
-RADIO_SEND_TIMEOUT_MS = const(100)
+RX_POLL_INTERVAL_MS     = const(2)   # idle
+RX_POLL_STREAM_MS       = const(0)   # while any stream is open (busy-poll)
+RADIO_SEND_TIMEOUT_MS   = const(30)  # was 100 - fail faster
 HELLO_INTERVAL_MS = const(2000)
 HELLO_JITTER_MS = const(1000)
 HEALTH_PROBE_INTERVAL_MS = const(7000)
@@ -60,7 +61,7 @@ BACKGROUND_QUIET_MS = const(300)
 REASSEMBLY_TIMEOUT_MS = const(2000)
 STREAM_TIMEOUT_MS = const(10000)
 REQUEST_TIMEOUT_MS = const(2000)
-_REPLY_TURNAROUND_MS = const(35)
+_REPLY_TURNAROUND_MS    = const(5)   # was 35 - only for JSON replies
 
 # Compact management operation values used inside JSON payloads.
 _OP_PING = const(0)
@@ -435,20 +436,31 @@ class TransportNode:
 
     # ---------- radio execution ----------
 
-    async def _recv_one(self):
+    async def _recv_available(self):
+        """
+        Drain every packet currently in the RX FIFO.
+        Returns a list (possibly empty).  Holds the radio lock only once.
+        """
+        # Cheap unlocked test
+        if not self.radio.any():
+            return []
+
+        packets = []
         await self._radio_lock.acquire()
         try:
-            if not self.radio.any():
-                return None
-            packet = self.radio.recv()
-            self._last_radio_activity = utime.ticks_ms()
-            return packet
+            while self.radio.any():
+                packets.append(self.radio.recv())
+            if packets:
+                self._last_radio_activity = utime.ticks_ms()
         finally:
             self._radio_lock.release()
+        return packets
 
     async def _send_payload_locked(self, packet):
+        """Send one radio packet. Caller must already hold _radio_lock."""
         self.radio.send_start(packet)
         started = utime.ticks_ms()
+
         while True:
             result = self.radio.send_done()
             if result == 1:
@@ -458,18 +470,18 @@ class TransportNode:
                     observe = self.radio.read_observe_tx()
                 finally:
                     self.radio.abort_send()
-
                 raise OSError(
                     "send failed: MAX_RT ARC={} PLOS={}".format(
-                        observe & 0x0F,
-                        (observe >> 4) & 0x0F,
+                        observe & 0x0F, (observe >> 4) & 0x0F
                     )
                 )
-            if utime.ticks_diff(utime.ticks_ms(), started) >= \
-                    RADIO_SEND_TIMEOUT_MS:
+            if utime.ticks_diff(utime.ticks_ms(), started) >= RADIO_SEND_TIMEOUT_MS:
                 self.radio.abort_send()
                 raise OSError("send timed out")
-            await uasyncio.sleep_ms(1)
+
+            # Yield only a few dozen microseconds so other coroutines can run,
+            # but do not burn a full millisecond.
+            await uasyncio.sleep_us(50)
 
     async def _send_packet_sequence(self, dst_id, msg_type, msg_id, payload,
                                     tx_address=None, mark_last=True,
@@ -483,9 +495,7 @@ class TransportNode:
             tx_address = self._endpoint_address(dst_id)
 
         await self._radio_lock.acquire()
-        if background and not self._background_service_allowed(
-                utime.ticks_ms()
-        ):
+        if background and not self._background_service_allowed(utime.ticks_ms()):
             self._radio_lock.release()
             return False
 
@@ -493,11 +503,12 @@ class TransportNode:
         fragment_index = 0
         payload_length = len(payload)
         fragment_count = max(
-            1,
-            (payload_length + MAX_CHUNK_SIZE - 1) // MAX_CHUNK_SIZE,
+            1, (payload_length + MAX_CHUNK_SIZE - 1) // MAX_CHUNK_SIZE
         )
+
         try:
-            self.radio.stop_listening()
+            # --- hot path start ---
+            self.radio.stop_listening()          # only drops CE, stays powered
             self.radio.open_tx_pipe(tx_address)
 
             offset = 0
@@ -511,8 +522,7 @@ class TransportNode:
 
                 header = bytes((
                     PROTOCOL_ID | msg_type,
-                    self.node_id if self.node_id is not None
-                    else UNASSIGNED_NODE_ID,
+                    self.node_id if self.node_id is not None else UNASSIGNED_NODE_ID,
                     dst_id,
                     msg_id,
                     flags,
@@ -528,6 +538,8 @@ class TransportNode:
                     offset = 1
                 else:
                     offset += len(chunk)
+            # --- hot path end ---
+
         except Exception as error:
             failed = True
             if self.debug:
@@ -536,10 +548,8 @@ class TransportNode:
                       "q", len(self._awaiting_replies), error)
             raise
         finally:
-            # open_tx_pipe() already configured and enabled pipe 0 for PTX ACK
-            # reception. Pipe 1 was never altered and needs no restoration.
             self.radio.close_rx_pipe(0)
-            self.radio.start_listening()
+            self.radio.start_listening()         # CE high, already powered
             self._last_radio_activity = utime.ticks_ms()
             self._radio_lock.release()
             if track_health and 0 <= dst_id <= MAX_SLAVE_NODE_ID:
@@ -550,18 +560,14 @@ class TransportNode:
         return True
 
     # ---------- main loop and periodic work ----------
-
     async def process(self):
         while True:
-            while True:
-                packet = await self._recv_one()
-                if packet is None:
-                    break
+            # Pull everything that is already sitting in the FIFO
+            packets = await self._recv_available()
+            for packet in packets:
                 try:
                     await self._handle_rx_packet(packet)
                 except Exception as error:
-                    # A malformed application command or failed reply must not
-                    # terminate the transport service permanently.
                     if self.debug:
                         print("RX!", error)
 
@@ -570,7 +576,22 @@ class TransportNode:
             except Exception as error:
                 if self.debug:
                     print("BG!", error)
-            await uasyncio.sleep_ms(RX_POLL_INTERVAL_MS)
+
+            # Adaptive idle time
+            if self._any_stream_active():
+                await uasyncio.sleep_ms(RX_POLL_STREAM_MS)   # 0 = just yield
+            else:
+                await uasyncio.sleep_ms(RX_POLL_INTERVAL_MS)
+
+
+    def _any_stream_active(self):
+        for slot in range(MAX_OPEN_STREAMS):
+            start = self._stream_start(slot)
+            if (self._incoming_streams[start + _STREAM_ACTIVE] or
+                    self._outgoing_streams[start + _STREAM_ACTIVE]):
+                return True
+        return False
+
 
     async def _run_periodic_tasks(self):
         now = utime.ticks_ms()
