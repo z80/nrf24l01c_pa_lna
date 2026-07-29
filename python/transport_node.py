@@ -56,7 +56,7 @@ HEALTH_PROBE_INTERVAL_MS = const(7000)
 HEALTH_PROBE_JITTER_MS = const(3000)
 SLAVE_CONFIRM_INTERVAL_MS = const(20000)
 SLAVE_CONFIRM_JITTER_MS = const(5000)
-BACKGROUND_QUIET_MS = const(100)
+BACKGROUND_QUIET_MS = const(300)
 REASSEMBLY_TIMEOUT_MS = const(2000)
 STREAM_TIMEOUT_MS = const(10000)
 REQUEST_TIMEOUT_MS = const(2000)
@@ -608,8 +608,12 @@ class TransportNode:
             )
 
     async def _master_periodic(self, now):
+        if self._transport_busy():
+            return
         # Probe at most one idle node per loop so periodic work stays bounded.
         for index in range(self._online_count):
+            if self._transport_busy():
+                return
             if utime.ticks_diff(now, self._online_last_seen(index)) < \
                     self._health_probe_delay(index):
                 continue
@@ -646,9 +650,20 @@ class TransportNode:
         return False
 
     def _background_service_allowed(self, now):
-        return not self._transport_busy() and utime.ticks_diff(
-            now, self._last_radio_activity
-        ) >= BACKGROUND_QUIET_MS
+        # 1. If transport is currently busy with replies, reassembly, or active streams, block background tasks
+        if self._transport_busy():
+            return False
+            
+        # 2. Explicitly check for any open incoming or outgoing streams/pipes
+        for slot in range(MAX_OPEN_STREAMS):
+            start = self._stream_start(slot)
+            if self._incoming_streams[start + _STREAM_ACTIVE] or \
+               self._outgoing_streams[start + _STREAM_ACTIVE]:
+                return False
+
+        # 3. Fall back to the standard quiet period check if no streams are open
+        ret = utime.ticks_diff(now, self._last_radio_activity) >= BACKGROUND_QUIET_MS
+        return ret
 
     def _health_probe_delay(self, index):
         start = self._online_start(index)
