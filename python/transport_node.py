@@ -46,7 +46,7 @@ MAX_COMMAND_SIZE = const(128)
 COMMAND_REASSEMBLY_SLOTS = const(2)
 MAX_PENDING_REQUESTS = const(2)
 MAX_CONSECUTIVE_FAILURES = const(3)
-MAX_OPEN_STREAMS = const(4)
+MAX_OPEN_STREAMS = const(2)
 
 RX_POLL_INTERVAL_MS     = const(2)   # idle
 RX_POLL_STREAM_MS       = const(0)   # while any stream is open (busy-poll)
@@ -161,6 +161,9 @@ class TransportNode:
         self._outgoing_streams = bytearray(
             MAX_OPEN_STREAMS * _STREAM_RECORD_SIZE
         )
+        
+        # Send buffer.
+        self._tx_buf = bytearray(RADIO_PAYLOAD_SIZE)
 
         # Only active local request waits are dynamic. Their number is bounded
         # by the number of calls the application has in flight.
@@ -520,19 +523,23 @@ class TransportNode:
                 if mark_last and is_final_chunk:
                     flags |= LAST_PACKET
 
-                header = bytes((
-                    PROTOCOL_ID | msg_type,
-                    self.node_id if self.node_id is not None else UNASSIGNED_NODE_ID,
-                    dst_id,
-                    msg_id,
-                    flags,
-                ))
-                crc = _crc8_update(0, self.network_id)
-                crc = _crc8_update(crc, header)
-                crc = _crc8_update(crc, chunk)
-                packet = header + chunk + bytes((crc,))
+                buf = self._tx_buf
+                buf[0] = PROTOCOL_ID | msg_type
+                buf[1] = self.node_id if self.node_id is not None else UNASSIGNED_NODE_ID
+                buf[2] = dst_id
+                buf[3] = msg_id
+                buf[4] = flags
 
-                await self._send_payload_locked(packet)
+                # copy chunk
+                n = len(chunk)
+                buf[5:5+n] = chunk
+
+                crc = _crc8_update(0, self.network_id)
+                crc = _crc8_update(crc, buf[:5])          # header
+                crc = _crc8_update(crc, chunk)
+                buf[5+n] = crc
+
+                await self._send_payload_locked(buf)
 
                 if payload_length == 0:
                     offset = 1
