@@ -93,8 +93,8 @@ class NRF24L01:
                  irq=None, irq_handler=None, 
                  speed=SPEED_2M,          # <-- 2 Mbps default
                  power=POWER_3,
-                 ard_us=250,              # <-- short auto-retransmit delay
-                 arc=3):
+                 ard_us=750,              # <-- short auto-retransmit delay
+                 arc=15):
 
         assert payload_size <= 32
 
