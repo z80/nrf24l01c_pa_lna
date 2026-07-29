@@ -3,6 +3,7 @@ import ujson
 import utime
 import uasyncio
 import ustruct
+import binascii
 
 from radio import get_nrf
 
@@ -93,18 +94,6 @@ _STREAM_LAST_SEEN = const(3)
 _STREAM_RECORD_SIZE = const(7)
 
 _NO_REPLY = object()
-
-
-def _crc8_update(crc, values):
-    """CRC-8/ATM update (polynomial 0x07), without allocating a buffer."""
-    for value in values:
-        crc ^= value
-        for unused in range(8):
-            if crc & 0x80:
-                crc = ((crc << 1) ^ 0x07) & 0xFF
-            else:
-                crc = (crc << 1) & 0xFF
-    return crc
 
 
 def _decode_network_id(network_id):
@@ -534,9 +523,9 @@ class TransportNode:
                 n = len(chunk)
                 buf[5:5+n] = chunk
 
-                crc = _crc8_update(0, self.network_id)
-                crc = _crc8_update(crc, buf[:5])          # header
-                crc = _crc8_update(crc, chunk)
+                crc = binascii.crc32(self.network_id, 0)
+                crc = binascii.crc32(buf[:5], crc)          # header
+                crc = binascii.crc32(chunk, crc) & 0xFF
                 buf[5+n] = crc
 
                 await self._send_payload_locked(buf)
@@ -754,11 +743,11 @@ class TransportNode:
         if len(payload) != payload_length:
             return
 
-        expected_crc = _crc8_update(0, self.network_id)
-        expected_crc = _crc8_update(
-            expected_crc, packet[:HEADER_SIZE]
+        expected_crc = binascii.crc32(self.network_id, 0)
+        expected_crc = binascii.crc32(
+            packet[:HEADER_SIZE], expected_crc
         )
-        expected_crc = _crc8_update(expected_crc, payload)
+        expected_crc = binascii.crc32(payload, expected_crc) & 0xFF
         if packet[crc_position] != expected_crc:
             return
 
