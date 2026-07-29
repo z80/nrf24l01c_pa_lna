@@ -484,7 +484,7 @@ class TransportNode:
 
             # Yield only a few dozen microseconds so other coroutines can run,
             # but do not burn a full millisecond.
-            await uasyncio.sleep_us(50)
+            await uasyncio.sleep_ms(0)
 
     async def _send_packet_sequence(self, dst_id, msg_type, msg_id, payload,
                                     tx_address=None, mark_last=True,
