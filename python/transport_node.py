@@ -107,7 +107,8 @@ class TransportNode:
                  network_id=DEFAULT_NETWORK_ID, core=None,
                  spi=None, cs=None, ce=None, irq=None,
                  spi_id=1, spi_baud=4000000,
-                 cs_pin="C4", ce_pin="C5", irq_pin="A4"):
+                 cs_pin="C4", ce_pin="C5", irq_pin="A4",
+                 max_rt_window_ms=100, max_rt_restarts=-1):
         self.is_master = bool(is_master)
         self.debug = bool(debug)
         self.network_id = _decode_network_id(network_id)
@@ -163,6 +164,8 @@ class TransportNode:
                     command_size=MAX_COMMAND_SIZE,
                     pipe_buffer_size=PIPE_BUFFER_SIZE,
                     pipe_event_bytes=PIPE_EVENT_BYTES,
+                    max_rt_window_ms=max_rt_window_ms,
+                    max_rt_restarts=max_rt_restarts,
                 )
             else:
                 core = _core.Core(
@@ -173,6 +176,8 @@ class TransportNode:
                     command_size=MAX_COMMAND_SIZE,
                     pipe_buffer_size=PIPE_BUFFER_SIZE,
                     pipe_event_bytes=PIPE_EVENT_BYTES,
+                    max_rt_window_ms=max_rt_window_ms,
+                    max_rt_restarts=max_rt_restarts,
                 )
         self.core = core
         self._event = _core.Event(self.core.recommended_event_size())
