@@ -16,6 +16,14 @@ ENUM_HELLO = _core.TYPE_ENUM_HELLO
 ENUM_ASSIGN = _core.TYPE_ENUM_ASSIGN
 ENUM_CONFIRM = _core.TYPE_ENUM_CONFIRM
 
+POWER_0 = const(0x00)
+POWER_1 = const(0x02)
+POWER_2 = const(0x04)
+POWER_3 = const(0x06)
+SPEED_1M = const(0x00)
+SPEED_2M = const(0x08)
+SPEED_250K = const(0x20)
+
 MASTER_NODE_ID = const(0)
 MAX_SLAVE_NODE_ID = const(0xFD)
 UNASSIGNED_NODE_ID = const(0xFF)
@@ -108,7 +116,8 @@ class TransportNode:
                  spi=None, cs=None, ce=None, irq=None,
                  spi_id=1, spi_baud=4000000,
                  cs_pin="C4", ce_pin="C5", irq_pin="A4",
-                 max_rt_window_ms=100, max_rt_restarts=-1):
+                 max_rt_window_ms=100, max_rt_restarts=-1,
+                 power=POWER_0, speed=SPEED_2M):
         self.is_master = bool(is_master)
         self.debug = bool(debug)
         self.network_id = _decode_network_id(network_id)
@@ -166,6 +175,7 @@ class TransportNode:
                     pipe_event_bytes=PIPE_EVENT_BYTES,
                     max_rt_window_ms=max_rt_window_ms,
                     max_rt_restarts=max_rt_restarts,
+                    power=power, data_rate=speed,
                 )
             else:
                 core = _core.Core(
@@ -178,6 +188,7 @@ class TransportNode:
                     pipe_event_bytes=PIPE_EVENT_BYTES,
                     max_rt_window_ms=max_rt_window_ms,
                     max_rt_restarts=max_rt_restarts,
+                    power=power, data_rate=speed,
                 )
         self.core = core
         self._event = _core.Event(self.core.recommended_event_size())
