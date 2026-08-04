@@ -66,6 +66,7 @@ class FakeCore:
         self.node_ids = []
         self.started = False
         self.pipe_write_limit = 3
+        self.radio_schedule = (20, 3)
 
     def recommended_event_size(self):
         return 256
@@ -113,6 +114,12 @@ class FakeCore:
 
     def close_pipe(self, slot):
         self.closed_pipes.append(slot)
+
+    def set_radio_schedule(self, max_tx_ms, rx_ms):
+        self.radio_schedule = (max_tx_ms, rx_ms)
+
+    def get_radio_schedule(self):
+        return self.radio_schedule
 
 
 def import_transport_module():
@@ -184,6 +191,14 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(node.core.poll_into(node._event))
         await node._dispatch_event()
         await asyncio.sleep(0)
+
+    async def test_radio_schedule_delegates_to_native_core(self):
+        core = FakeCore()
+        node = self.transport.TransportNode(core=core)
+        self.assertEqual(node.get_radio_schedule(), (20, 3))
+        node.set_radio_schedule(40, 5)
+        self.assertEqual(core.radio_schedule, (40, 5))
+        self.assertEqual(node.get_radio_schedule(), (40, 5))
 
     async def test_registration_round_trip_uses_native_datagrams(self):
         self.write_identity("0011223344556677")

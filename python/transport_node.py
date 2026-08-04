@@ -194,6 +194,12 @@ class TransportNode:
         self._event = _core.Event(self.core.recommended_event_size())
         self.core.start()
 
+    def set_radio_schedule(self, max_tx_ms, rx_ms):
+        self.core.set_radio_schedule(max_tx_ms, rx_ms)
+
+    def get_radio_schedule(self):
+        return self.core.get_radio_schedule()
+
     # ---------- identity and addresses ----------
 
     def _load_identity(self):
