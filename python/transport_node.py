@@ -511,7 +511,8 @@ class TransportNode:
             else:
                 self._incoming_pipe_active[object_id] = 0
                 self._queue_pipe_callback(
-                    object_id, 3, transaction_id, source_id, b""
+                    object_id, 4, transaction_id, source_id,
+                    (value0, value1)
                 )
         elif event_type == _core.EVENT_CORE_ERROR and self.debug:
             print("CORE!", value0, value1)
@@ -538,12 +539,20 @@ class TransportNode:
         try:
             while queue:
                 kind, pipe_id, source_id, data = queue.pop(0)
-                if kind == 1:
-                    await self.on_pipe_opened(pipe_id, source_id)
-                elif kind == 2:
-                    await self.on_pipe_data(pipe_id, source_id, data)
-                else:
-                    await self.on_pipe_closed(pipe_id, source_id)
+                try:
+                    if kind == 1:
+                        await self.on_pipe_opened(pipe_id, source_id)
+                    elif kind == 2:
+                        await self.on_pipe_data(pipe_id, source_id, data)
+                    elif kind == 3:
+                        await self.on_pipe_closed(pipe_id, source_id)
+                    else:
+                        await self.on_pipe_failed(
+                            pipe_id, source_id, data[0], data[1]
+                        )
+                except Exception as error:
+                    if self.debug:
+                        print("PCB!", kind, error)
         finally:
             self._pipe_callback_running[slot] = 0
 
@@ -878,6 +887,10 @@ class TransportNode:
         pass
 
     async def on_pipe_closed(self, pipe_id, src_id):
+        pass
+
+    async def on_pipe_failed(self, pipe_id, src_id, reason,
+                             transferred_bytes):
         pass
 
     # ---------- periodic policy ----------

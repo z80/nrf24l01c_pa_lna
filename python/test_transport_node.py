@@ -341,6 +341,39 @@ class TransportNodeTests(unittest.IsolatedAsyncioTestCase):
         await self.dispatch_one(node)
         await closing
 
+    async def test_incoming_pipe_failure_is_distinct_and_callbacks_continue(self):
+        self.write_identity("0011223344556677")
+        core = FakeCore()
+        node = self.transport.TransportNode(
+            is_master=True, debug=False, core=core
+        )
+        failures = []
+
+        async def broken_data(unused_pipe, unused_source, unused_data):
+            raise RuntimeError("callback failed")
+
+        async def on_failed(pipe_id, source_id, reason, received):
+            failures.append((pipe_id, source_id, reason, received))
+
+        node.on_pipe_data = broken_data
+        node.on_pipe_failed = on_failed
+        core.push(
+            self.transport._core.EVENT_PIPE_RX_DATA,
+            object_id=0, source=4, transaction=17, data=b"partial",
+        )
+        await self.dispatch_one(node)
+        core.push(
+            self.transport._core.EVENT_PIPE_FAILED,
+            object_id=0, source=4, transaction=17,
+            value0=6, value1=7,
+        )
+        await self.dispatch_one(node)
+        for unused in range(10):
+            if failures:
+                break
+            await asyncio.sleep(0)
+        self.assertEqual(failures, [(17, 4, 6, 7)])
+
     async def test_local_command_and_packed_online_records(self):
         self.write_identity("0011223344556677")
         node = self.transport.TransportNode(
